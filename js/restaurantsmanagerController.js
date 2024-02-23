@@ -268,7 +268,58 @@ class RestaurantsManagerController {
     this.onAddMenu();
     this.onAddRestaurant();
     this.onAddClose();
+    this[VIEW].showAdminMenu();
+    this[VIEW].bindAdminMenu(this.handleNewDishForm);
   };
+
+  /** --- PRACTICA 7 --- */
+  handleNewDishForm = () => {
+    this[VIEW].showNewDishForm(this[MODEL].categories, this[MODEL].allergens);
+    this[VIEW].bindNewDishForm(this.handleCreateDish);
+  };
+
+  // Manejador que recibe los datos del formulario de creación de platos
+  handleCreateDish = (name, ingredients, category, allergens, image, desc) => {
+    // Crea el plato
+    const dish = this[MODEL].createDish(name, RestaurantsManager.Dish);
+    // Le asigna valores si los ha recibido
+    if (desc) dish.description = desc;
+    if (image) dish.image = image;
+    if (ingredients) dish.ingredients = ingredients.split(",");
+
+    let cat;
+    if (category) {
+      // Recupera el objeto de categoría
+      cat = this[MODEL].createCategory(category, RestaurantsManager.Category);
+    }
+
+    let done;
+    let error;
+    try {
+      // Añade el plato al array
+      this[MODEL].addDish(dish);
+
+      // Si ha recibido una categoría, se la asigna al plato
+      if (cat) this[MODEL].assignCategoryToDish(cat, dish);
+
+      // Si ha recibido alérgenos, los recorre y los va asignando al plato
+      for (let all of allergens) {
+        let auxAll = this[MODEL].createAllergen(
+          all,
+          RestaurantsManager.Allergen
+        );
+        this[MODEL].assignAllergenToDish(auxAll, dish);
+      }
+
+      done = true;
+    } catch (exception) {
+      done = false;
+      error = exception;
+    }
+    this[VIEW].showNewDishModal(done, dish, error);
+  };
+
+  /** --- FIN PRACTICA 7 --- */
 
   // Funciones que se ejecutan al clickear inicio
   onInit = () => {
@@ -306,7 +357,6 @@ class RestaurantsManagerController {
     this[VIEW].bindRestaurantListInMenu(this.handleRestaurantsMenuList);
   };
 
-  // ----- PRACTICA 6 -> OnAddClose & handleCloseWindowsInMenu -----
   // Mostrado de enlace para cerrar ventanas y manejador
   onAddClose = () => {
     this[VIEW].showCloseWindowsInMenu();

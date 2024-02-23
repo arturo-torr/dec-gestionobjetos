@@ -1,3 +1,4 @@
+import { newDishValidation } from "./validation.js";
 // Symbol dónde se introducirá la vista de RestaurantManager
 const EXECUTE_HANDLER = Symbol("executeHandler");
 
@@ -28,46 +29,6 @@ class RestaurantsManagerView {
     if (scroll) scroll.scrollIntoView();
     history.pushState(data, null, url);
     event.preventDefault();
-  }
-
-  // Modifiado el método para poder invocar a [EXECUTE_HANDLER]()
-  bindInit(handler) {
-    document.getElementById("init").addEventListener("click", (event) => {
-      // Creación de las migas de pan, seleccionando el <ol> que las contiene y posteriormente sus <li>
-      let ol = this.breadcrumb.closest("ol");
-      let elements = ol.querySelectorAll("li");
-
-      // Lo recorremos y eliminamos aquello que no sea el Inicio para limpiar en cada llamada las migas de pan
-      for (const element of elements) {
-        if (element !== ol.firstElementChild) element.remove();
-      }
-      this[EXECUTE_HANDLER](
-        handler,
-        [],
-        "body",
-        { action: "init" },
-        "#",
-        event
-      );
-    });
-    document.getElementById("logo").addEventListener("click", (event) => {
-      // Creación de las migas de pan, seleccionando el <ol> que las contiene y posteriormente sus <li>
-      let ol = this.breadcrumb.closest("ol");
-      let elements = ol.querySelectorAll("li");
-
-      // Lo recorremos y eliminamos aquello que no sea el Inicio para limpiar en cada llamada las migas de pan
-      for (const element of elements) {
-        if (element !== ol.firstElementChild) element.remove();
-      }
-      this[EXECUTE_HANDLER](
-        handler,
-        [],
-        "body",
-        { action: "init" },
-        "#",
-        event
-      );
-    });
   }
 
   // Función que permite visualizar platos en la zona inicial del HTML
@@ -109,62 +70,6 @@ class RestaurantsManagerView {
     }
     // Insertamos el contenedor con el formato de platos en el html
     this.initzone.append(container);
-  }
-
-  // Manejador que se da cuando se realiza click en la zona con los platos aleatorios
-  bindDishesRandomList(handler) {
-    // Obtiene el elemento y aquellos que dentro se compongan con el tag <a>
-    const randomList = document.getElementById("random-list");
-    const links = randomList.querySelectorAll("a");
-    for (const link of links) {
-      link.addEventListener("click", (event) => {
-        const { dish } = event.currentTarget.dataset;
-        this[EXECUTE_HANDLER](
-          handler,
-          [dish],
-          "#single-dish",
-          { action: "dishesRandomList", dish },
-          "#single-dish",
-          event
-        );
-      });
-    }
-  }
-
-  // Permite unir con el controlador el plato (de aquellos que formen parte de una lista, nunca de los platos iniciales aleatorios), añadiendo un manejador de eventos para cada plato
-  bindShowDish(handler) {
-    // Obtiene el elemento y los links
-    const dishList = document.getElementById("dish-list");
-    const links = dishList.querySelectorAll("a.text--green");
-    for (const link of links) {
-      link.addEventListener("click", (event) => {
-        const { dish } = event.currentTarget.dataset;
-        this[EXECUTE_HANDLER](
-          handler,
-          [dish],
-          "#single-dish",
-          { action: "showDish", dish },
-          "#single-dish",
-          event
-        );
-      });
-    }
-
-    // También recoge las imágenes
-    const images = dishList.querySelectorAll("figcaption a");
-    for (const image of images) {
-      image.addEventListener("click", (event) => {
-        const { dish } = event.currentTarget.dataset;
-        this[EXECUTE_HANDLER](
-          handler,
-          [dish],
-          "#single-dish",
-          { action: "showDish", dish },
-          "#single-dish",
-          event
-        );
-      });
-    }
   }
 
   // Función que permite imprimir en el HTML las categorías
@@ -240,48 +145,6 @@ class RestaurantsManagerView {
     this.menu.append(div);
   }
 
-  // Manejador que se da cuando se realiza click en la zona central de categorías
-  bindDishesCategoryList(handler) {
-    // Obtiene el elemento y aquellos que dentro se compongan con el tag <a>
-    const categoryList = document.getElementById("dish-list");
-    const links = categoryList.querySelectorAll("a");
-    // Los recorre y recupera el nombre de la categoría con el atributo personalizado dataset.category
-    for (const link of links) {
-      link.addEventListener("click", (event) => {
-        const { category } = event.currentTarget.dataset;
-        this[EXECUTE_HANDLER](
-          handler,
-          [category],
-          "#dish-list",
-          { action: "dishesCategoryList", category },
-          "#dish-list",
-          event
-        );
-      });
-    }
-  }
-
-  // Manejador que se da cuando se realiza click en la zona de navegación de categorías
-  bindDishesCategoryListInMenu(handler) {
-    // Obtiene el elemento de navCats y recoge el siguiente hermano con el tag <a>
-    const navCats = document.getElementById("navCats");
-    const links = navCats.nextSibling.querySelectorAll("a");
-    // Los recorre y recupera el nombre de la categoría con el atributo personalizado dataset.category
-    for (const link of links) {
-      link.addEventListener("click", (event) => {
-        const { category } = event.currentTarget.dataset;
-        this[EXECUTE_HANDLER](
-          handler,
-          [category],
-          "#dish-list",
-          { action: "dishesCategoryList", category },
-          "#dish-list",
-          event
-        );
-      });
-    }
-  }
-
   // Función que permite mostrar en el menú de navegación un ítem dropdown con los alérgenos
   showAllergensInMenu(allergens) {
     // Crea un div y le asignamos formato de navegación
@@ -321,27 +184,6 @@ class RestaurantsManagerView {
     div.append(container);
     // Inserta el menú de navegación creado
     this.menu.append(div);
-  }
-
-  // Manejador de unión que se da cuando se realiza click en la zona de navegación de alérgenos
-  bindDishesAllergenListInMenu(handler) {
-    // Obtiene el elemento de navAllergens y recoge los tag <a>
-    const navAllergens = document.getElementById("navAllergens");
-    const links = navAllergens.nextSibling.querySelectorAll("a");
-    // Los recorre y añade el manejador para aquellos que tienen el atributo allergen
-    for (const link of links) {
-      link.addEventListener("click", (event) => {
-        const { allergen } = event.currentTarget.dataset;
-        this[EXECUTE_HANDLER](
-          handler,
-          [allergen],
-          "#dish-list",
-          { action: "dishesAllergenList", allergen },
-          "#dish-list",
-          event
-        );
-      });
-    }
   }
 
   // Función que permite mostrar en el menú de navegación un ítem dropdown con los menús registrados
@@ -385,27 +227,6 @@ class RestaurantsManagerView {
     this.menu.append(div);
   }
 
-  // Manejador de unión que se da cuando se realiza click en la zona de navegación de menús
-  bindMenuListInNav(handler) {
-    // Obtiene el elemento de navMenus y recoge los tag <a>
-    const navMenus = document.getElementById("navMenus");
-    const links = navMenus.nextSibling.querySelectorAll("a");
-    // Los recorre y añade el manejador para aquellos que tienen el atributo menú
-    for (const link of links) {
-      link.addEventListener("click", (event) => {
-        const { menu } = event.currentTarget.dataset;
-        this[EXECUTE_HANDLER](
-          handler,
-          [menu],
-          "#dish-list",
-          { action: "dishesMenuList", menu },
-          "#dish-list",
-          event
-        );
-      });
-    }
-  }
-
   // Función que permite mostrar en el menú de navegación un ítem dropdown con los restaurantes registrados
   showRestaurantsInMenu(restaurants) {
     // Crea un div y le asignamos formato de navegación
@@ -445,27 +266,6 @@ class RestaurantsManagerView {
     div.append(container);
     // Inserta el menú de navegación creado
     this.menu.append(div);
-  }
-
-  // Manejador de unión que se da cuando se realiza click en la zona de navegación de restaurantes
-  bindRestaurantListInMenu(handler) {
-    // Obtiene el elemento de navRests y recoge los tag <a>
-    const navRests = document.getElementById("navRests");
-    const links = navRests.nextSibling.querySelectorAll("a");
-    // Los recorre y añade un manejador de eventos para aquellos con el atributo rest
-    for (const link of links) {
-      link.addEventListener("click", (event) => {
-        const { rest } = event.currentTarget.dataset;
-        this[EXECUTE_HANDLER](
-          handler,
-          [rest],
-          "#restaurant",
-          { action: "restaurantList", rest },
-          "#restaurant",
-          event
-        );
-      });
-    }
   }
 
   // Función que permite mostrar una tarjeta personalizada con la información de cada restaurante
@@ -680,8 +480,6 @@ class RestaurantsManagerView {
     this.centralzone.append(container);
   }
 
-  // ------ PRÁCTICA 6 - Los métodos que se ven a continuación son de la práctica 6 ------
-
   // Función a la que pasamos un plato y la nueva ventana para mostrarlas
   showDishInNewWindow(dish, newWindow, message) {
     // Recoge el main y el header de dish.html y los limia
@@ -783,6 +581,412 @@ class RestaurantsManagerView {
       </a>`
     );
     this.menu.append(div);
+  }
+
+  // Función que permite mostrar en el menú de navegación un ítem dropdown con las categorías
+  showAdminMenu() {
+    // Crea un div y le asignamos formato de navegación
+    const div = document.createElement("div");
+    div.classList.add("nav-item", "dropdown", "navbar__menu");
+    // Le insertamos el HTML que permite que sea dropdown
+    div.insertAdjacentHTML(
+      "beforeend",
+      `<a
+          class=" dropdown-toggle"
+          href="#"
+          id="navAdministration"
+          role="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false">
+          Administración
+        </a>`
+    );
+
+    // Crea un div y le asigna el formato que será el desplegable
+    const subContainer = document.createElement("div");
+    subContainer.classList.add("dropdown-menu");
+    subContainer.insertAdjacentHTML(
+      "beforeend",
+      '<a id="newDish" class="dropdown-item text--green fw-bold" href="#new-dish">Crear plato</a>'
+    );
+    subContainer.insertAdjacentHTML(
+      "beforeend",
+      '<a id="delDish" class="dropdown-item text--green fw-bold" href="#del-dish">Eliminar plato</a>'
+    );
+    subContainer.insertAdjacentHTML(
+      "beforeend",
+      '<a id="updAssign" class="dropdown-item text--green fw-bold" href="#upd-assign">Modificar asignación</a> <li><hr class="dropdown-divider border--green1"></li>'
+    );
+    subContainer.insertAdjacentHTML(
+      "beforeend",
+      '<a id="newCategory" class="dropdown-item text--green fw-bold" href="#new-category">Añadir categoría</a>'
+    );
+    subContainer.insertAdjacentHTML(
+      "beforeend",
+      '<a id="delCategory" class="dropdown-item text--green fw-bold" href="#del-category">Eliminar categoría</a>'
+    );
+    subContainer.insertAdjacentHTML(
+      "beforeend",
+      '<a id="updCategory" class="dropdown-item text--green fw-bold" href="#upd-category">Modificar categoría</a> <li><hr class="dropdown-divider border--green1"></li>'
+    );
+    subContainer.insertAdjacentHTML(
+      "beforeend",
+      '<a id="newRestaurant" class="dropdown-item text--green fw-bold" href="#new-restaurant">Crear restaurante</a>'
+    );
+
+    div.append(subContainer);
+    // Inserta el menú de navegación creado
+    this.menu.append(div);
+  }
+
+  // Muestra el formulario para la creación de un nuevo plato
+  showNewDishForm(categories, allergens) {
+    this.initzone.replaceChildren();
+    if (this.centralzone.children.length > 0) {
+      this.centralzone.children[0].remove();
+    }
+
+    // Crea un elemento form
+    let form = document.createElement("form");
+    form.name = "fNewDish";
+    form.role = "form";
+    form.classList.add("my-3");
+    form.insertAdjacentHTML(
+      "afterbegin",
+      `
+    <form class="row g-3" novalidate ></form>`
+    );
+
+    form.insertAdjacentHTML(
+      "beforeend",
+      `<div class="col-md-12 mb-3">
+				<label class="form-label" for="ncName">Nombre de plato *</label>
+				<div class="input-group">
+					<span class="input-group-text"><i class="bi bi-type"></i></span>
+					<input type="text" class="form-control" id="ncName" name="ncName"
+						placeholder="Nombre del plato" required>
+					<div class="invalid-feedback">Debes introducir el nombre del plato obligatoriamente.</div>
+					<div class="valid-feedback">Correcto!</div>
+				</div>
+			</div>
+      <div class="col-md-12 mb-3">
+				<label class="form-label" for="ncIngredients">Ingredientes: </label>
+				<div class="input-group">
+					<span class="input-group-text"><i class="bi bi-type"></i></span>
+					<input type="text" class="form-control" id="ncIngredients" name="ncIngredients"
+						placeholder="Ej: Pimienta,Sal,Patata">
+					<div class="invalid-feedback"></div>
+					<div class="valid-feedback">Correcto!</div>
+				</div>
+			</div>
+      <div class="col-md-12 mb-3">
+       <label for="ncImage" class="form-label">Foto del plato:</label>
+       <input class="form-control form-control-sm" id="ncImage" name="ncImage" type="file">
+      </div>
+      <div class="col-md-12 mb-3">
+        <label class="form-label" for="ncCategories">Seleccionar categoría:</label>
+        <div class="input-group">
+            <select id="selectCategories" name="ncCategories" class="form-select" size="3" aria-label="Multiple select categorys">
+            </select>
+        </div>
+      </div>
+      <div class="col-md-12 mb-3">
+        <label class="form-label" for="ncAllergens">Seleccionar alérgeno:</label>
+        <div class="input-group">
+            <select id="selectAllergens" name="ncAllergens" class="form-select" size="3" multiple aria-label="Multiple select allergens">
+            </select>
+        </div>
+      </div>
+      <div class="col-md-12 mb-3">
+        <label class="form-label" for="ncDescription">Descripción</label>
+       <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-body-text"></i></span>
+          <input type="text" class="form-control" id="ncDescription" name="ncDescription" value="">
+         <div class="invalid-feedback"></div>
+          <div class="valid-feedback">Correcto.</div>
+      </div>
+    </div>
+    
+      <button class=" newfood__content__button" type="submit">Enviar</button>
+      <button class=" newfood__content__button" type="reset">Cancelar</button>
+    `
+    );
+
+    this.centralzone.append(form);
+
+    // Recogemos los select del formulario para hacerlos dinámicos
+    let selectCategory = document.getElementById("selectCategories");
+    let selectAllergen = document.getElementById("selectAllergens");
+
+    for (const category of categories) {
+      selectCategory.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${category.category.name}">${category.category.name}</option>`
+      );
+    }
+
+    for (const allergen of allergens) {
+      selectAllergen.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${allergen.allergen.name}">${allergen.allergen.name}</option>`
+      );
+    }
+  }
+
+  // Modal que se abre cuando se crea un plato, indicando si se ha creado o no correctamente.
+  showNewDishModal(done, dish, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Nuevo plato";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="p-3">El plato <strong>${dish.name}</strong> ha sido creado correctamente.</div>`
+      );
+    } else {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="error text-danger p-3"><i class="bi bi-exclamation-triangle"></i> El plato <strong>${dish.name}</strong> ya está creado.</div>`
+      );
+    }
+    messageModal.show();
+    const listener = (event) => {
+      if (done) {
+        document.fNewDish.reset();
+      }
+      document.fNewDish.ncName.focus();
+    };
+    messageModalContainer.addEventListener("hidden.bs.modal", listener, {
+      once: true,
+    });
+  }
+  /** ------------------- MÉTODOS BIND ------------------- */
+
+  /** --- PRACTICA 7 --- */
+
+  bindAdminMenu(hNewDish) {
+    const newDishLink = document.getElementById("newDish");
+    newDishLink.addEventListener("click", (event) => {
+      this[EXECUTE_HANDLER](
+        hNewDish,
+        [],
+        "#new-dish",
+        { action: "newDish" },
+        "#",
+        event
+      );
+    });
+  }
+
+  bindNewDishForm(handler) {
+    newDishValidation(handler);
+  }
+
+  /** --- FIN PRACTICA 6  **/
+
+  // Modificado el método para poder invocar a [EXECUTE_HANDLER]()
+  bindInit(handler) {
+    document.getElementById("init").addEventListener("click", (event) => {
+      // Creación de las migas de pan, seleccionando el <ol> que las contiene y posteriormente sus <li>
+      let ol = this.breadcrumb.closest("ol");
+      let elements = ol.querySelectorAll("li");
+
+      // Lo recorremos y eliminamos aquello que no sea el Inicio para limpiar en cada llamada las migas de pan
+      for (const element of elements) {
+        if (element !== ol.firstElementChild) element.remove();
+      }
+      this[EXECUTE_HANDLER](
+        handler,
+        [],
+        "body",
+        { action: "init" },
+        "#",
+        event
+      );
+    });
+    document.getElementById("logo").addEventListener("click", (event) => {
+      // Creación de las migas de pan, seleccionando el <ol> que las contiene y posteriormente sus <li>
+      let ol = this.breadcrumb.closest("ol");
+      let elements = ol.querySelectorAll("li");
+
+      // Lo recorremos y eliminamos aquello que no sea el Inicio para limpiar en cada llamada las migas de pan
+      for (const element of elements) {
+        if (element !== ol.firstElementChild) element.remove();
+      }
+      this[EXECUTE_HANDLER](
+        handler,
+        [],
+        "body",
+        { action: "init" },
+        "#",
+        event
+      );
+    });
+  }
+
+  // Manejador que se da cuando se realiza click en la zona con los platos aleatorios
+  bindDishesRandomList(handler) {
+    // Obtiene el elemento y aquellos que dentro se compongan con el tag <a>
+    const randomList = document.getElementById("random-list");
+    const links = randomList.querySelectorAll("a");
+    for (const link of links) {
+      link.addEventListener("click", (event) => {
+        const { dish } = event.currentTarget.dataset;
+        this[EXECUTE_HANDLER](
+          handler,
+          [dish],
+          "#single-dish",
+          { action: "dishesRandomList", dish },
+          "#single-dish",
+          event
+        );
+      });
+    }
+  }
+
+  // Manejador que se da cuando se realiza click en la zona central de categorías
+  bindDishesCategoryList(handler) {
+    // Obtiene el elemento y aquellos que dentro se compongan con el tag <a>
+    const categoryList = document.getElementById("dish-list");
+    const links = categoryList.querySelectorAll("a");
+    // Los recorre y recupera el nombre de la categoría con el atributo personalizado dataset.category
+    for (const link of links) {
+      link.addEventListener("click", (event) => {
+        const { category } = event.currentTarget.dataset;
+        this[EXECUTE_HANDLER](
+          handler,
+          [category],
+          "#dish-list",
+          { action: "dishesCategoryList", category },
+          "#dish-list",
+          event
+        );
+      });
+    }
+  }
+
+  // Manejador que se da cuando se realiza click en la zona de navegación de categorías
+  bindDishesCategoryListInMenu(handler) {
+    // Obtiene el elemento de navCats y recoge el siguiente hermano con el tag <a>
+    const navCats = document.getElementById("navCats");
+    const links = navCats.nextSibling.querySelectorAll("a");
+    // Los recorre y recupera el nombre de la categoría con el atributo personalizado dataset.category
+    for (const link of links) {
+      link.addEventListener("click", (event) => {
+        const { category } = event.currentTarget.dataset;
+        this[EXECUTE_HANDLER](
+          handler,
+          [category],
+          "#dish-list",
+          { action: "dishesCategoryList", category },
+          "#dish-list",
+          event
+        );
+      });
+    }
+  }
+
+  // Manejador de unión que se da cuando se realiza click en la zona de navegación de alérgenos
+  bindDishesAllergenListInMenu(handler) {
+    // Obtiene el elemento de navAllergens y recoge los tag <a>
+    const navAllergens = document.getElementById("navAllergens");
+    const links = navAllergens.nextSibling.querySelectorAll("a");
+    // Los recorre y añade el manejador para aquellos que tienen el atributo allergen
+    for (const link of links) {
+      link.addEventListener("click", (event) => {
+        const { allergen } = event.currentTarget.dataset;
+        this[EXECUTE_HANDLER](
+          handler,
+          [allergen],
+          "#dish-list",
+          { action: "dishesAllergenList", allergen },
+          "#dish-list",
+          event
+        );
+      });
+    }
+  }
+
+  // Manejador de unión que se da cuando se realiza click en la zona de navegación de menús
+  bindMenuListInNav(handler) {
+    // Obtiene el elemento de navMenus y recoge los tag <a>
+    const navMenus = document.getElementById("navMenus");
+    const links = navMenus.nextSibling.querySelectorAll("a");
+    // Los recorre y añade el manejador para aquellos que tienen el atributo menú
+    for (const link of links) {
+      link.addEventListener("click", (event) => {
+        const { menu } = event.currentTarget.dataset;
+        this[EXECUTE_HANDLER](
+          handler,
+          [menu],
+          "#dish-list",
+          { action: "dishesMenuList", menu },
+          "#dish-list",
+          event
+        );
+      });
+    }
+  }
+
+  // Manejador de unión que se da cuando se realiza click en la zona de navegación de restaurantes
+  bindRestaurantListInMenu(handler) {
+    // Obtiene el elemento de navRests y recoge los tag <a>
+    const navRests = document.getElementById("navRests");
+    const links = navRests.nextSibling.querySelectorAll("a");
+    // Los recorre y añade un manejador de eventos para aquellos con el atributo rest
+    for (const link of links) {
+      link.addEventListener("click", (event) => {
+        const { rest } = event.currentTarget.dataset;
+        this[EXECUTE_HANDLER](
+          handler,
+          [rest],
+          "#restaurant",
+          { action: "restaurantList", rest },
+          "#restaurant",
+          event
+        );
+      });
+    }
+  }
+
+  // Permite unir con el controlador el plato (de aquellos que formen parte de una lista, nunca de los platos iniciales aleatorios), añadiendo un manejador de eventos para cada plato
+  bindShowDish(handler) {
+    // Obtiene el elemento y los links
+    const dishList = document.getElementById("dish-list");
+    const links = dishList.querySelectorAll("a.text--green");
+    for (const link of links) {
+      link.addEventListener("click", (event) => {
+        const { dish } = event.currentTarget.dataset;
+        this[EXECUTE_HANDLER](
+          handler,
+          [dish],
+          "#single-dish",
+          { action: "showDish", dish },
+          "#single-dish",
+          event
+        );
+      });
+    }
+
+    // También recoge las imágenes
+    const images = dishList.querySelectorAll("figcaption a");
+    for (const image of images) {
+      image.addEventListener("click", (event) => {
+        const { dish } = event.currentTarget.dataset;
+        this[EXECUTE_HANDLER](
+          handler,
+          [dish],
+          "#single-dish",
+          { action: "showDish", dish },
+          "#single-dish",
+          event
+        );
+      });
+    }
   }
 
   // Enlaza con el controlador para que cierre las ventanas de las fichas abiertas
