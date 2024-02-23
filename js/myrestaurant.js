@@ -17,6 +17,7 @@ const historyActions = {
   restaurantList: (event) =>
     RestaurantManagerApp.handleRestaurantsMenuList(event.state.rest),
   showDish: (event) => RestaurantManagerApp.handleShowDish(event.state.dish),
+  newDish: () => RestaurantManagerApp.handleNewDishForm(),
 };
 
 // Se define 'popstate' para restaurar el estado de la página en función del tipo de acción apilada

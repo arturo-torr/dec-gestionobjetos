@@ -1,3 +1,4 @@
+import { newDishValidation } from "./validation.js";
 // Symbol dónde se introducirá la vista de RestaurantManager
 const EXECUTE_HANDLER = Symbol("executeHandler");
 
@@ -638,33 +639,33 @@ class RestaurantsManagerView {
     this.menu.append(div);
   }
 
+  // Muestra el formulario para la creación de un nuevo plato
   showNewDishForm(categories, allergens) {
     this.initzone.replaceChildren();
     if (this.centralzone.children.length > 0) {
       this.centralzone.children[0].remove();
     }
 
+    // Crea un elemento form
     let form = document.createElement("form");
+    form.name = "fNewDish";
+    form.role = "form";
     form.classList.add("my-3");
     form.insertAdjacentHTML(
       "afterbegin",
       `
-    <form name="fNewDish" role="form" class="row g-3" novalidate></form>`
+    <form class="row g-3" novalidate ></form>`
     );
-    form.id = "new-dish";
 
-    const container = document.createElement("div");
-    container.classList.add("container", "my-3");
-
-    container.insertAdjacentHTML(
+    form.insertAdjacentHTML(
       "beforeend",
       `<div class="col-md-12 mb-3">
-				<label class="form-label" for="ncTitle">Nombre de plato *</label>
+				<label class="form-label" for="ncName">Nombre de plato *</label>
 				<div class="input-group">
 					<span class="input-group-text"><i class="bi bi-type"></i></span>
-					<input type="text" class="form-control" id="ncTitle" name="ncTitle"
+					<input type="text" class="form-control" id="ncName" name="ncName"
 						placeholder="Nombre del plato" required>
-					<div class="invalid-feedback">El nombre es obligatorio.</div>
+					<div class="invalid-feedback">Debes introducir el nombre del plato obligatoriamente.</div>
 					<div class="valid-feedback">Correcto!</div>
 				</div>
 			</div>
@@ -679,20 +680,20 @@ class RestaurantsManagerView {
 				</div>
 			</div>
       <div class="col-md-12 mb-3">
-       <label for="formFileSm" class="form-label">Foto del plato:</label>
-       <input class="form-control form-control-sm" id="ncImage" type="file">
+       <label for="ncImage" class="form-label">Foto del plato:</label>
+       <input class="form-control form-control-sm" id="ncImage" name="ncImage" type="file">
       </div>
       <div class="col-md-12 mb-3">
         <label class="form-label" for="ncCategories">Seleccionar categoría:</label>
         <div class="input-group">
-            <select id="selectCategories" class="form-select" size="3" multiple aria-label="Multiple select categorys">
+            <select id="selectCategories" name="ncCategories" class="form-select" size="3" aria-label="Multiple select categorys">
             </select>
         </div>
       </div>
       <div class="col-md-12 mb-3">
         <label class="form-label" for="ncAllergens">Seleccionar alérgeno:</label>
         <div class="input-group">
-            <select id="selectAllergens" class="form-select" size="3" multiple aria-label="Multiple select allergens">
+            <select id="selectAllergens" name="ncAllergens" class="form-select" size="3" multiple aria-label="Multiple select allergens">
             </select>
         </div>
       </div>
@@ -705,15 +706,15 @@ class RestaurantsManagerView {
           <div class="valid-feedback">Correcto.</div>
       </div>
     </div>
-    <div class="">
+    
       <button class=" newfood__content__button" type="submit">Enviar</button>
       <button class=" newfood__content__button" type="reset">Cancelar</button>
-    </div>`
+    `
     );
 
-    form.append(container);
     this.centralzone.append(form);
 
+    // Recogemos los select del formulario para hacerlos dinámicos
     let selectCategory = document.getElementById("selectCategories");
     let selectAllergen = document.getElementById("selectAllergens");
 
@@ -732,7 +733,40 @@ class RestaurantsManagerView {
     }
   }
 
+  // Modal que se abre cuando se crea un plato, indicando si se ha creado o no correctamente.
+  showNewDishModal(done, dish, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Nuevo plato";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="p-3">El plato <strong>${dish.name}</strong> ha sido creado correctamente.</div>`
+      );
+    } else {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="error text-danger p-3"><i class="bi bi-exclamation-triangle"></i> El plato <strong>${dish.name}</strong> ya está creado.</div>`
+      );
+    }
+    messageModal.show();
+    const listener = (event) => {
+      if (done) {
+        document.fNewDish.reset();
+      }
+      document.fNewDish.ncName.focus();
+    };
+    messageModalContainer.addEventListener("hidden.bs.modal", listener, {
+      once: true,
+    });
+  }
   /** ------------------- MÉTODOS BIND ------------------- */
+
+  /** --- PRACTICA 7 --- */
 
   bindAdminMenu(hNewDish) {
     const newDishLink = document.getElementById("newDish");
@@ -747,6 +781,12 @@ class RestaurantsManagerView {
       );
     });
   }
+
+  bindNewDishForm(handler) {
+    newDishValidation(handler);
+  }
+
+  /** --- FIN PRACTICA 6  **/
 
   // Modificado el método para poder invocar a [EXECUTE_HANDLER]()
   bindInit(handler) {
