@@ -60,6 +60,11 @@ header {
     color: #8CDD00;
 }
 
+.dropdown-item {
+    background-color: #121318;
+    color: #8CDD00;
+}
+
 .dropdown-menu>a {
     background-color: #121318;
     color: #8CDD00;
@@ -379,14 +384,6 @@ textarea {
     margin-bottom: 2vh;
 }
 
-input:invalid, select:required:invalid {
-    border: 3px solid lightcoral;
-}
-
-input:valid:not(.submit), select:required:valid {
-    border: 3px solid lightgreen;
-}
-
 /**  ------------- PÁGINA NOSOTROS ------------- **/
 #escene {
     display: block;
@@ -448,4 +445,8 @@ input:valid:not(.submit), select:required:valid {
 .border--green:hover {
     border: 2px solid #6db500;
     background-color: #121318;
+}
+
+.border--green1 {
+    border: 1px solid #8CDD00;
 }

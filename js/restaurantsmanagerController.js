@@ -268,6 +268,8 @@ class RestaurantsManagerController {
     this.onAddMenu();
     this.onAddRestaurant();
     this.onAddClose();
+    this[VIEW].showAdminMenu();
+    this[VIEW].bindAdminMenu(this.handleNewDishForm);
   };
 
   // Funciones que se ejecutan al clickear inicio
@@ -306,7 +308,10 @@ class RestaurantsManagerController {
     this[VIEW].bindRestaurantListInMenu(this.handleRestaurantsMenuList);
   };
 
-  // ----- PRACTICA 6 -> OnAddClose & handleCloseWindowsInMenu -----
+  handleNewDishForm = () => {
+    this[VIEW].showNewDishForm(this[MODEL].categories, this[MODEL].allergens);
+  };
+
   // Mostrado de enlace para cerrar ventanas y manejador
   onAddClose = () => {
     this[VIEW].showCloseWindowsInMenu();
