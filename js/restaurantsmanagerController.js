@@ -273,7 +273,8 @@ class RestaurantsManagerController {
       this.handleNewDishForm,
       this.handleRemoveDishForm,
       this.handleNewCategoryForm,
-      this.handleRemoveCategoryForm
+      this.handleRemoveCategoryForm,
+      this.handleNewRestaurantForm
     );
   };
 
@@ -296,6 +297,11 @@ class RestaurantsManagerController {
   handleRemoveCategoryForm = () => {
     this[VIEW].showRemoveCategoryForm(this[MODEL].categories);
     this[VIEW].bindRemoveCategoryForm(this.handleRemoveCategory);
+  };
+
+  handleNewRestaurantForm = () => {
+    this[VIEW].showNewRestaurantForm();
+    this[VIEW].bindNewRestaurantForm(this.handleCreateRestaurant);
   };
 
   // Manejador que recibe los datos del formulario de creación de platos
@@ -399,6 +405,29 @@ class RestaurantsManagerController {
     this[VIEW].showRemoveCategoryModal(done, cat, error);
   };
 
+  // Recibe el nombre, descripción y coordenadas de un restaurante, lo crea y actualiza los menús
+  // Posteriormente lanza el modal
+  handleCreateRestaurant = (name, desc, lat, long) => {
+    const rest = this[MODEL].createRestaurant(
+      name,
+      RestaurantsManager.Restaurant
+    );
+    if (rest) rest.description = desc;
+    if (lat && long) rest.location = new Coordinate(lat, long);
+
+    let done;
+    let error;
+    try {
+      this[MODEL].addRestaurant(rest);
+      // Actualiza el menú para que se muestre el nuevo restaurante creado
+      this.onAddRestaurant();
+      done = true;
+    } catch (exception) {
+      done = false;
+      error = exception;
+    }
+    this[VIEW].showNewRestaurantModal(done, rest, error);
+  };
   /** --- FIN PRACTICA 7 --- */
 
   // Funciones que se ejecutan al clickear inicio

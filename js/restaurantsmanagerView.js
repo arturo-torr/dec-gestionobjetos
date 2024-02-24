@@ -1,4 +1,8 @@
-import { newDishValidation, newCategoryValidation } from "./validation.js";
+import {
+  newDishValidation,
+  newCategoryValidation,
+  newRestaurantValidation,
+} from "./validation.js";
 // Symbol dónde se introducirá la vista de RestaurantManager
 const EXECUTE_HANDLER = Symbol("executeHandler");
 
@@ -201,43 +205,15 @@ class RestaurantsManagerView {
 
   // Función que permite mostrar en el menú de navegación un ítem dropdown con los restaurantes registrados
   showRestaurantsInMenu(restaurants) {
-    // Crea un div y le asignamos formato de navegación
-    const div = document.createElement("div");
-    div.classList.add("nav-item", "dropdown", "navbar__menu");
-    // Le insertamos el HTML que permite que sea dropdown
-    div.insertAdjacentHTML(
-      "beforeend",
-      `<a
-        class="dropdown-toggle"
-        href="#"
-        id="navRests"
-        role="button"
-        data-bs-toggle="dropdown"
-        aria-expanded="false">
-        Restaurantes
-      </a>`
-    );
-
-    // Crea un div y le asigna el formato que será el desplegable
-    const container = document.createElement("div");
-    container.classList.add("dropdown-menu");
-    // Recorremos los restaurantes y se insertarán dentro del desplegable
+    const navRests = document.getElementById("navRests");
+    const container = navRests.nextElementSibling;
+    container.replaceChildren();
     for (const rest of restaurants) {
       container.insertAdjacentHTML(
         "beforeend",
-        `
-          <a
-            data-rest="${rest.restaurant.name}"
-            class="dropdown-item"
-            href="#restaurant"
-          >
-            ${rest.restaurant.name}
-          </a>`
+        `<li><a data-rest="${rest.restaurant.name}" class="dropdown-item fw-bold" href="#restaurant">${rest.restaurant.name}</a></li>`
       );
     }
-    div.append(container);
-    // Inserta el menú de navegación creado
-    this.menu.append(div);
   }
 
   // Función que permite mostrar una tarjeta personalizada con la información de cada restaurante
@@ -893,6 +869,91 @@ class RestaurantsManagerView {
     this.centralzone.append(container);
   }
 
+  // Muestra el formulario para la creación de una nueva categoría
+  showNewRestaurantForm() {
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    // Creamos un elemento con el nombre del plato y lo agrega a las migas de pan
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Crear restaurante";
+    ol.appendChild(li);
+
+    this.centralzone.replaceChildren();
+    this.initzone.replaceChildren();
+
+    // Crea un elemento form
+    let form = document.createElement("form");
+    form.name = "fNewRestaurant";
+    form.role = "form";
+    form.classList.add("my-5", "p-3");
+    form.insertAdjacentHTML(
+      "afterbegin",
+      `<form class="row g-3" novalidate ></form>`
+    );
+
+    form.insertAdjacentHTML(
+      "beforeend",
+      `<div class="col-md-12 mb-4">
+      <label class="form-label" for="ncName">Nombre del Restaurante: *</label>
+      <div class="input-group">
+          <span class="input-group-text"><i class="fa-solid fa-font"></i></span>
+          <input type="text" class="form-control" id="ncName" name="ncName" placeholder="Nombre del Restaurante" required>
+          <div class="invalid-feedback">Debes introducir el nombre del restaurante obligatoriamente.</div>
+          <div class="valid-feedback">Correcto!</div>
+      </div>
+  </div>
+  
+  <div class="col-md-12 mb-4">
+      <label class="form-label" for="ncDescription">Descripción:</label>
+      <div class="input-group">
+          <span class="input-group-text"><i class="fa-regular fa-rectangle-list"></i></span>
+          <input type="text" class="form-control" id="ncDescription" name="ncDescription" value="">
+          <div class="invalid-feedback"></div>
+          <div class="valid-feedback">Correcto.</div>
+      </div>
+  </div>
+  
+  <div class="row">
+      <div class="col-md-6 mb-4">
+          <label class="form-label" for="ncLatitude">Latitud:</label>
+          <div class="input-group">
+              <span class="input-group-text"><i class="fa-solid fa-location-crosshairs"></i></span>
+              <input type="text" class="form-control" placeholder="Ej: 25.283" id="ncLatitude" name="ncLatitude">
+              <div class="invalid-feedback">La latitud debe ir entre -90 y 90.</div>
+              <div class="valid-feedback">Correcto.</div>
+          </div>
+      </div>
+  
+      <div class="col-md-6 mb-4">
+          <label class="form-label" for="ncLatitude">Longitud:</label>
+          <div class="input-group">
+              <span class="input-group-text"><i class="fa-solid fa-location-crosshairs"></i></span>
+              <input type="text" class="form-control" placeholder="Ej: -55.283"  id="ncLongitude" name="ncLongitude">
+              <div class="invalid-feedback">La longitud debe ir entre -180 y 180.</div>
+              <div class="valid-feedback">Correcto.</div>
+          </div>
+      </div>
+  </div>
+  
+  <button class="newfood__content__button" type="submit">Enviar</button>
+  <button class="newfood__content__button" type="reset">Cancelar</button>`
+    );
+
+    this.centralzone.append(form);
+
+    // Inserta un título previo al formulario
+    let div = document.createElement("div");
+    div.insertAdjacentHTML(
+      "beforeend",
+      `<h1 class="text--green fw-bold my-4 mx-2">Agregar un nuevo restaurante</h1>`
+    );
+    div.id = "new-restaurant";
+    form.insertAdjacentElement("beforebegin", div);
+  }
+
   /** ----------- INICIO MODALES -----------  */
 
   // Modal que se abre cuando se crea un plato, indicando si se ha creado o no correctamente.
@@ -1007,13 +1068,51 @@ class RestaurantsManagerView {
     messageModal.show();
   }
 
+  // Modal que se abre cuando se realiza el intento de insertar un nuevo restaurante
+  showNewRestaurantModal(done, rest, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Nuevo Restaurante";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="p-3">El restaurante <strong>${rest.name}</strong> ha sido creado correctamente.</div>`
+      );
+    } else {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i>El restaurante <strong>${rest.name}</strong> ya está creada.</div>`
+      );
+    }
+    messageModal.show();
+    const listener = (event) => {
+      if (done) {
+        document.fNewRestaurant.reset();
+      }
+      document.fNewRestaurant.ncName.focus();
+    };
+    messageModalContainer.addEventListener("hidden.bs.modal", listener, {
+      once: true,
+    });
+  }
+
   /** ----------- FIN MODALES -----------  */
 
   /** ------------------- MÉTODOS BIND ------------------- */
 
   /** --- PRACTICA 7 --- */
 
-  bindAdminMenu(hNewDish, hRemoveDish, hNewCategory, hRemoveCategory) {
+  bindAdminMenu(
+    hNewDish,
+    hRemoveDish,
+    hNewCategory,
+    hRemoveCategory,
+    hNewRest
+  ) {
     const newDishLink = document.getElementById("newDish");
     newDishLink.addEventListener("click", (event) => {
       this[EXECUTE_HANDLER](
@@ -1061,6 +1160,17 @@ class RestaurantsManagerView {
         event
       );
     });
+    const newRestLink = document.getElementById("newRestaurant");
+    newRestLink.addEventListener("click", (event) => {
+      this[EXECUTE_HANDLER](
+        hNewRest,
+        [],
+        "#new-restaurant",
+        { action: "newRestaurant" },
+        "#",
+        event
+      );
+    });
   }
 
   bindNewDishForm(handler) {
@@ -1069,6 +1179,10 @@ class RestaurantsManagerView {
 
   bindNewCategoryForm(handler) {
     newCategoryValidation(handler);
+  }
+
+  bindNewRestaurantForm(handler) {
+    newRestaurantValidation(handler);
   }
 
   // Vincula a cada botón de eliminar los platos el manejador, pasándole el plato a través del dataset
@@ -1106,6 +1220,9 @@ class RestaurantsManagerView {
       for (const element of elements) {
         if (element !== ol.firstElementChild) element.remove();
       }
+
+      this.centralzone.children[0].remove();
+
       this[EXECUTE_HANDLER](
         handler,
         [],
@@ -1124,6 +1241,9 @@ class RestaurantsManagerView {
       for (const element of elements) {
         if (element !== ol.firstElementChild) element.remove();
       }
+
+      this.centralzone.children[0].remove();
+
       this[EXECUTE_HANDLER](
         handler,
         [],
@@ -1243,7 +1363,7 @@ class RestaurantsManagerView {
   bindRestaurantListInMenu(handler) {
     // Obtiene el elemento de navRests y recoge los tag <a>
     const navRests = document.getElementById("navRests");
-    const links = navRests.nextSibling.querySelectorAll("a");
+    const links = navRests.nextElementSibling.querySelectorAll("a");
     // Los recorre y añade un manejador de eventos para aquellos con el atributo rest
     for (const link of links) {
       link.addEventListener("click", (event) => {
