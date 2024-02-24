@@ -795,7 +795,7 @@ class RestaurantsManagerView {
     let form = document.createElement("form");
     form.name = "fNewCategory";
     form.role = "form";
-    form.classList.add("my-3");
+    form.classList.add("my-5", "py-5");
     form.insertAdjacentHTML(
       "afterbegin",
       `
