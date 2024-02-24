@@ -641,10 +641,18 @@ class RestaurantsManagerView {
 
   // Muestra el formulario para la creación de un nuevo plato
   showNewDishForm(categories, allergens) {
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    // Creamos un elemento con el nombre del plato y lo agrega a las migas de pan
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Crear plato";
+    ol.appendChild(li);
+
+    this.centralzone.replaceChildren();
     this.initzone.replaceChildren();
-    if (this.centralzone.children.length > 0) {
-      this.centralzone.children[0].remove();
-    }
 
     // Crea un elemento form
     let form = document.createElement("form");
@@ -660,9 +668,9 @@ class RestaurantsManagerView {
     form.insertAdjacentHTML(
       "beforeend",
       `<div class="col-md-12 mb-3">
-				<label class="form-label" for="ncName">Nombre de plato *</label>
+				<label class="form-label" for="ncName">Nombre de plato: *</label>
 				<div class="input-group">
-					<span class="input-group-text"><i class="bi bi-type"></i></span>
+					<span class="input-group-text"><i class="fa-solid fa-font"></i></span>
 					<input type="text" class="form-control" id="ncName" name="ncName"
 						placeholder="Nombre del plato" required>
 					<div class="invalid-feedback">Debes introducir el nombre del plato obligatoriamente.</div>
@@ -672,7 +680,7 @@ class RestaurantsManagerView {
       <div class="col-md-12 mb-3">
 				<label class="form-label" for="ncIngredients">Ingredientes: </label>
 				<div class="input-group">
-					<span class="input-group-text"><i class="bi bi-type"></i></span>
+					<span class="input-group-text"><i class="fa-solid fa-carrot"></i></span>
 					<input type="text" class="form-control" id="ncIngredients" name="ncIngredients"
 						placeholder="Ej: Pimienta,Sal,Patata">
 					<div class="invalid-feedback"></div>
@@ -684,23 +692,23 @@ class RestaurantsManagerView {
        <input class="form-control form-control-sm" id="ncImage" name="ncImage" type="file">
       </div>
       <div class="col-md-12 mb-3">
-        <label class="form-label" for="ncCategories">Seleccionar categoría:</label>
+        <label class="form-label" for="ncCategories">Seleccionar categoría: (una opción)</label>
         <div class="input-group">
             <select id="selectCategories" name="ncCategories" class="form-select" size="3" aria-label="Multiple select categorys">
             </select>
         </div>
       </div>
       <div class="col-md-12 mb-3">
-        <label class="form-label" for="ncAllergens">Seleccionar alérgeno:</label>
+        <label class="form-label" for="ncAllergens">Seleccionar alérgeno: (múltiples opciones)</label>
         <div class="input-group">
             <select id="selectAllergens" name="ncAllergens" class="form-select" size="3" multiple aria-label="Multiple select allergens">
             </select>
         </div>
       </div>
       <div class="col-md-12 mb-3">
-        <label class="form-label" for="ncDescription">Descripción</label>
+        <label class="form-label" for="ncDescription">Descripción:</label>
        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-body-text"></i></span>
+          <span class="input-group-text"><i class="fa-regular fa-rectangle-list"></i></span>
           <input type="text" class="form-control" id="ncDescription" name="ncDescription" value="">
          <div class="invalid-feedback"></div>
           <div class="valid-feedback">Correcto.</div>
@@ -731,7 +739,72 @@ class RestaurantsManagerView {
         `<option value="${allergen.allergen.name}">${allergen.allergen.name}</option>`
       );
     }
+
+    // Inserta un título previo al formulario
+    let div = document.createElement("div");
+    div.insertAdjacentHTML(
+      "beforeend",
+      `<h1 class="text--green fw-bold my-5 mx-2">Agregar un nuevo plato</h1>`
+    );
+    div.id = "new-dish";
+    form.insertAdjacentElement("beforebegin", div);
   }
+
+  showRemoveDishForm(dishes) {
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    // Creamos un elemento con el nombre del plato y lo agrega a las migas de pan
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Eliminar plato";
+    ol.appendChild(li);
+
+    this.centralzone.replaceChildren();
+    this.initzone.replaceChildren();
+
+    const container = document.createElement("div");
+    container.classList.add("container", "my-3");
+    container.id = "remove-dish";
+    container.insertAdjacentHTML(
+      "afterbegin",
+      '<h1 class="display-5 text--green mt-5">Eliminar un plato</h1>'
+    );
+
+    const row = document.createElement("div");
+    row.classList.add("row");
+
+    for (const dish of dishes) {
+      row.insertAdjacentHTML(
+        "beforeend",
+        `<div class="col-lg-3 col-md-6 my-3">
+          <a data-dish="${dish.dish.name}" href="#dish-list" class="text--green">
+            <div>
+              <img alt="${dish.dish.name}" src="${dish.dish.image}" class="img-fluid" />
+            </div>
+            <div>
+              <h3 class="text--green fw-bold mt-2">${dish.dish.name}</h3>
+              <div class="text--green">${dish.dish.description}</div>
+            </div>
+            <div>
+              <button
+                class="newfood__content__button"
+                data-dish="${dish.dish.name}"
+                type="button"
+              >
+                Eliminar
+              </button>
+            </div>
+          </a>
+        </div>`
+      );
+    }
+    container.append(row);
+    this.centralzone.append(container);
+  }
+
+  /** ----------- INICIO MODALES -----------  */
 
   // Modal que se abre cuando se crea un plato, indicando si se ha creado o no correctamente.
   showNewDishModal(done, dish, error) {
@@ -750,7 +823,7 @@ class RestaurantsManagerView {
     } else {
       body.insertAdjacentHTML(
         "afterbegin",
-        `<div class="error text-danger p-3"><i class="bi bi-exclamation-triangle"></i> El plato <strong>${dish.name}</strong> ya está creado.</div>`
+        `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i> El plato <strong>${dish.name}</strong> ya está creado.</div>`
       );
     }
     messageModal.show();
@@ -764,11 +837,38 @@ class RestaurantsManagerView {
       once: true,
     });
   }
+
+  // Modal que se abre cuando se realiza el intento de eliminar una categoría
+  showRemoveDishModal(done, dish, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Borrado de plato";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="p-3">El plato
+    <strong>${dish.name}</strong> ha sido eliminado correctamente.</div>`
+      );
+    } else {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i> El plato <strong>${dish.name}</strong> no se ha podido
+    borrar.</div>`
+      );
+    }
+    messageModal.show();
+  }
+
+  /** ----------- FIN MODALES -----------  */
+
   /** ------------------- MÉTODOS BIND ------------------- */
 
   /** --- PRACTICA 7 --- */
 
-  bindAdminMenu(hNewDish) {
+  bindAdminMenu(hNewDish, hRemoveDish) {
     const newDishLink = document.getElementById("newDish");
     newDishLink.addEventListener("click", (event) => {
       this[EXECUTE_HANDLER](
@@ -780,13 +880,35 @@ class RestaurantsManagerView {
         event
       );
     });
+    const removeDishLink = document.getElementById("delDish");
+    removeDishLink.addEventListener("click", (event) => {
+      this[EXECUTE_HANDLER](
+        hRemoveDish,
+        [],
+        "#remove-dish",
+        { action: "removeDish" },
+        "#",
+        event
+      );
+    });
   }
 
   bindNewDishForm(handler) {
     newDishValidation(handler);
   }
 
-  /** --- FIN PRACTICA 6  **/
+  // Vincula a cada botón de eliminar los platos el manejador, pasándole el plato a través del dataset
+  bindRemoveDishForm(handler) {
+    const removeContainer = document.getElementById("remove-dish");
+    const buttons = removeContainer.getElementsByTagName("button");
+    for (const button of buttons) {
+      button.addEventListener("click", function (event) {
+        handler(this.dataset.dish);
+      });
+    }
+  }
+
+  /** --- FIN PRACTICA 7  **/
 
   // Modificado el método para poder invocar a [EXECUTE_HANDLER]()
   bindInit(handler) {

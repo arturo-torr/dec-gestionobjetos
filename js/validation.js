@@ -16,6 +16,7 @@ function showFeedBack(input, valid, message) {
     messageDiv.innerHTML = message;
   }
 }
+
 function defaultCheckElement(event) {
   this.value = this.value.trim();
   if (!this.checkValidity()) {

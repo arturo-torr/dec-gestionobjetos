@@ -269,13 +269,18 @@ class RestaurantsManagerController {
     this.onAddRestaurant();
     this.onAddClose();
     this[VIEW].showAdminMenu();
-    this[VIEW].bindAdminMenu(this.handleNewDishForm);
+    this[VIEW].bindAdminMenu(this.handleNewDishForm, this.handleRemoveDishForm);
   };
 
   /** --- PRACTICA 7 --- */
   handleNewDishForm = () => {
     this[VIEW].showNewDishForm(this[MODEL].categories, this[MODEL].allergens);
     this[VIEW].bindNewDishForm(this.handleCreateDish);
+  };
+
+  handleRemoveDishForm = () => {
+    this[VIEW].showRemoveDishForm(this[MODEL].dishes);
+    this[VIEW].bindRemoveDishForm(this.handleRemoveDish);
   };
 
   // Manejador que recibe los datos del formulario de creación de platos
@@ -317,6 +322,25 @@ class RestaurantsManagerController {
       error = exception;
     }
     this[VIEW].showNewDishModal(done, dish, error);
+  };
+
+  // Manejador que recibe el nombre de un plato y procede a su borrado
+  handleRemoveDish = (name) => {
+    let done;
+    let error;
+    let dish;
+
+    try {
+      dish = this[MODEL].createDish(name, RestaurantsManager.Dish);
+      this[MODEL].removeDish(dish);
+      done = true;
+      // Vuelve a invocar al formulario para que aparezca actualizado
+      this.handleRemoveDishForm();
+    } catch (exception) {
+      done = false;
+      error = exception;
+    }
+    this[VIEW].showRemoveDishModal(done, dish, error);
   };
 
   /** --- FIN PRACTICA 7 --- */
