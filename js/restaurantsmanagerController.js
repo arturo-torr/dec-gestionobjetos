@@ -272,7 +272,8 @@ class RestaurantsManagerController {
     this[VIEW].bindAdminMenu(
       this.handleNewDishForm,
       this.handleRemoveDishForm,
-      this.handleNewCategoryForm
+      this.handleNewCategoryForm,
+      this.handleRemoveCategoryForm
     );
   };
 
@@ -290,6 +291,11 @@ class RestaurantsManagerController {
   handleNewCategoryForm = () => {
     this[VIEW].showNewCategoryForm();
     this[VIEW].bindNewCategoryForm(this.handleCreateCategory);
+  };
+
+  handleRemoveCategoryForm = () => {
+    this[VIEW].showRemoveCategoryForm(this[MODEL].categories);
+    this[VIEW].bindRemoveCategoryForm(this.handleRemoveCategory);
   };
 
   // Manejador que recibe los datos del formulario de creación de platos
@@ -370,6 +376,27 @@ class RestaurantsManagerController {
       error = exception;
     }
     this[VIEW].showNewCategoryModal(done, cat, error);
+  };
+
+  // Manejador que recibe el nombre de una categoría y procede a su borrado
+  handleRemoveCategory = (name) => {
+    let done;
+    let error;
+    let cat;
+
+    try {
+      cat = this[MODEL].createDish(name, RestaurantsManager.Category);
+      this[MODEL].removeCategory(cat);
+      done = true;
+      // Vuelve a invocar al formulario para que aparezca actualizado
+      this.handleRemoveCategoryForm();
+      // Actualiza el menú para no mostrar la categoría borrada
+      this.onAddCategory();
+    } catch (exception) {
+      done = false;
+      error = exception;
+    }
+    this[VIEW].showRemoveCategoryModal(done, cat, error);
   };
 
   /** --- FIN PRACTICA 7 --- */

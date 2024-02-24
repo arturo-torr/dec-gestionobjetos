@@ -722,6 +722,7 @@ class RestaurantsManagerView {
     form.insertAdjacentElement("beforebegin", div);
   }
 
+  // Función que vista todos los platos con un botón, permitiendo su posterior eliminación
   showRemoveDishForm(dishes) {
     // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
     let ol = this.breadcrumb.closest("ol");
@@ -841,6 +842,57 @@ class RestaurantsManagerView {
     form.insertAdjacentElement("beforebegin", div);
   }
 
+  showRemoveCategoryForm(categories) {
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    // Creamos un elemento con el nombre y lo agrega a las migas de pan
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Eliminar categoría";
+    ol.appendChild(li);
+
+    this.centralzone.replaceChildren();
+    this.initzone.replaceChildren();
+
+    const container = document.createElement("div");
+    container.classList.add("container", "my-3");
+    container.id = "remove-category";
+    container.insertAdjacentHTML(
+      "afterbegin",
+      '<h1 class="display-5 text--green mt-5">Eliminar categorías</h1>'
+    );
+
+    const row = document.createElement("div");
+    row.classList.add("row");
+
+    for (const category of categories) {
+      row.insertAdjacentHTML(
+        "beforeend",
+        `<div class="col-lg-3 col-md-6 m-3 p-3 border--green rounded">
+          <a data-category="${category.category.name}" class="text--green">
+            <div>
+              <h3 class="text--green fw-bold mt-2">${category.category.name}</h3>
+              <div class="text--green">${category.category.description}</div>
+            </div>
+            <div>
+              <button
+                class="newfood__content__button"
+                data-category="${category.category.name}"
+                type="button"
+              >
+                Eliminar
+              </button>
+            </div>
+          </a>
+        </div>`
+      );
+    }
+    container.append(row);
+    this.centralzone.append(container);
+  }
+
   /** ----------- INICIO MODALES -----------  */
 
   // Modal que se abre cuando se crea un plato, indicando si se ha creado o no correctamente.
@@ -875,7 +927,7 @@ class RestaurantsManagerView {
     });
   }
 
-  // Modal que se abre cuando se realiza el intento de eliminar una categoría
+  // Modal que se abre cuando se realiza el intento de eliminar un plato
   showRemoveDishModal(done, dish, error) {
     const messageModalContainer = document.getElementById("messageModal");
     const messageModal = new bootstrap.Modal("#messageModal");
@@ -899,6 +951,7 @@ class RestaurantsManagerView {
     messageModal.show();
   }
 
+  // Modal qeu se abre cuando se realiza el intento de insertar una nueva categoría
   showNewCategoryModal(done, cat, error) {
     const messageModalContainer = document.getElementById("messageModal");
     const messageModal = new bootstrap.Modal("#messageModal");
@@ -930,13 +983,37 @@ class RestaurantsManagerView {
     });
   }
 
+  // Modal que se abre cuando se realiza el intento de eliminar un plato
+  showRemoveCategoryModal(done, cat, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Borrado de categoría";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="p-3">La categoría
+    <strong>${cat.name}</strong> ha sido eliminada correctamente.</div>`
+      );
+    } else {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i>La categoría <strong>${cat.name}</strong> no se ha podido
+    borrar.</div>`
+      );
+    }
+    messageModal.show();
+  }
+
   /** ----------- FIN MODALES -----------  */
 
   /** ------------------- MÉTODOS BIND ------------------- */
 
   /** --- PRACTICA 7 --- */
 
-  bindAdminMenu(hNewDish, hRemoveDish, hNewCategory) {
+  bindAdminMenu(hNewDish, hRemoveDish, hNewCategory, hRemoveCategory) {
     const newDishLink = document.getElementById("newDish");
     newDishLink.addEventListener("click", (event) => {
       this[EXECUTE_HANDLER](
@@ -948,6 +1025,7 @@ class RestaurantsManagerView {
         event
       );
     });
+
     const removeDishLink = document.getElementById("delDish");
     removeDishLink.addEventListener("click", (event) => {
       this[EXECUTE_HANDLER](
@@ -959,6 +1037,7 @@ class RestaurantsManagerView {
         event
       );
     });
+
     const newCategoryLink = document.getElementById("newCategory");
     newCategoryLink.addEventListener("click", (event) => {
       this[EXECUTE_HANDLER](
@@ -966,6 +1045,18 @@ class RestaurantsManagerView {
         [],
         "#new-category",
         { action: "newCategory" },
+        "#",
+        event
+      );
+    });
+
+    const removeCategoryLink = document.getElementById("delCategory");
+    removeCategoryLink.addEventListener("click", (event) => {
+      this[EXECUTE_HANDLER](
+        hRemoveCategory,
+        [],
+        "#remove-category",
+        { action: "removeCategory" },
         "#",
         event
       );
@@ -987,6 +1078,17 @@ class RestaurantsManagerView {
     for (const button of buttons) {
       button.addEventListener("click", function (event) {
         handler(this.dataset.dish);
+      });
+    }
+  }
+
+  // Vincula a cada botón de eliminar categorías el manejador, pasándole la categoría a través del dataset
+  bindRemoveCategoryForm(handler) {
+    const removeContainer = document.getElementById("remove-category");
+    const buttons = removeContainer.getElementsByTagName("button");
+    for (const button of buttons) {
+      button.addEventListener("click", function (event) {
+        handler(this.dataset.category);
       });
     }
   }
