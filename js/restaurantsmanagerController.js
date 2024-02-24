@@ -269,7 +269,11 @@ class RestaurantsManagerController {
     this.onAddRestaurant();
     this.onAddClose();
     this[VIEW].showAdminMenu();
-    this[VIEW].bindAdminMenu(this.handleNewDishForm, this.handleRemoveDishForm);
+    this[VIEW].bindAdminMenu(
+      this.handleNewDishForm,
+      this.handleRemoveDishForm,
+      this.handleNewCategoryForm
+    );
   };
 
   /** --- PRACTICA 7 --- */
@@ -281,6 +285,11 @@ class RestaurantsManagerController {
   handleRemoveDishForm = () => {
     this[VIEW].showRemoveDishForm(this[MODEL].dishes);
     this[VIEW].bindRemoveDishForm(this.handleRemoveDish);
+  };
+
+  handleNewCategoryForm = () => {
+    this[VIEW].showNewCategoryForm();
+    this[VIEW].bindNewCategoryForm(this.handleCreateCategory);
   };
 
   // Manejador que recibe los datos del formulario de creación de platos
@@ -341,6 +350,26 @@ class RestaurantsManagerController {
       error = exception;
     }
     this[VIEW].showRemoveDishModal(done, dish, error);
+  };
+
+  // Recibe el nombre y descripción (si la tiene) de una categoría, la crea y actualiza los menús
+  // Posteriormente lanza el modal
+  handleCreateCategory = (name, desc) => {
+    const cat = this[MODEL].createCategory(name, RestaurantsManager.Category);
+    if (cat) cat.description = desc;
+
+    let done;
+    let error;
+    try {
+      this[MODEL].addCategory(cat);
+      // Actualiza el menú para que se muestre la nueva categoría creada
+      this.onAddCategory();
+      done = true;
+    } catch (exception) {
+      done = false;
+      error = exception;
+    }
+    this[VIEW].showNewCategoryModal(done, cat, error);
   };
 
   /** --- FIN PRACTICA 7 --- */
@@ -463,7 +492,6 @@ class RestaurantsManagerController {
     }
   };
 
-  // ----- PRACTICA 6 -----
   // Manejador para el mostrado de platos en una nueva ventana
   handleShowDishInNewWindow = (name, newWindow) => {
     try {
