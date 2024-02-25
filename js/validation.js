@@ -264,9 +264,64 @@ function newUpdateAssignValidation(handler) {
   });
 }
 
+function newUpdateAllergenValidation(handler) {
+  const form = document.forms.fUpdAllergen;
+
+  form.setAttribute("novalidate", true);
+  form.addEventListener("submit", function (event) {
+    let isValid = true;
+    let firstInvalidElement = null;
+
+    // Se tiene que escoger un alérgeno obligatoriamente
+    if (this.ncAllergens.selectedOptions.length != 1) {
+      isValid = false;
+      showFeedBack(this.ncAllergens, false);
+      firstInvalidElement = this.ncAllergens;
+    } else {
+      showFeedBack(this.ncAllergens, true);
+    }
+
+    // Se tiene que escoger obligatoriamente un plato como mínimo
+    if (this.ncDishes.selectedOptions.length < 1) {
+      isValid = false;
+      showFeedBack(this.ncDishes, false);
+      firstInvalidElement = this.ncDishes;
+    } else {
+      showFeedBack(this.ncDishes, true);
+    }
+
+    if (!isValid) {
+      firstInvalidElement.focus();
+    } else {
+      // Transformación de los platos seleccionadas en array
+      let dishes = Array.from(this.ncDishes.selectedOptions).map(
+        (option) => option.value
+      );
+      handler(this.ncAllergens.value, dishes, this.ncAssignOption.value);
+    }
+    event.preventDefault();
+    event.stopPropagation();
+  });
+
+  form.addEventListener("reset", function (event) {
+    for (const div of this.querySelectorAll(
+      "div.valid-feedback,div.invalid-feedback"
+    )) {
+      div.classList.remove("d-block");
+      div.classList.add("d-none");
+    }
+    for (const input of this.querySelectorAll("input")) {
+      input.classList.remove("is-valid");
+      input.classList.remove("is-invalid");
+    }
+    this.ncDishes.focus();
+  });
+}
+
 export {
   newDishValidation,
   newCategoryValidation,
   newRestaurantValidation,
   newUpdateAssignValidation,
+  newUpdateAllergenValidation,
 };

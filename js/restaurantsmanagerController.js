@@ -275,7 +275,8 @@ class RestaurantsManagerController {
       this.handleNewCategoryForm,
       this.handleRemoveCategoryForm,
       this.handleNewRestaurantForm,
-      this.handleUpdAssignForm
+      this.handleUpdAssignForm,
+      this.handleUpdAllergenForm
     );
   };
 
@@ -308,6 +309,14 @@ class RestaurantsManagerController {
   handleUpdAssignForm = () => {
     this[VIEW].showUpdateAssignForm(this[MODEL].dishes, this[MODEL].menus);
     this[VIEW].bindUpdateAssignForm(this.handleUpdateMenus);
+  };
+
+  handleUpdAllergenForm = () => {
+    this[VIEW].showUpdateAllergenForm(
+      this[MODEL].dishes,
+      this[MODEL].allergens
+    );
+    this[VIEW].bindUpdateAllergenForm(this.handleUpdateAllergens);
   };
 
   // Manejador que recibe los datos del formulario de creación de platos
@@ -458,11 +467,52 @@ class RestaurantsManagerController {
       }
       done = true;
     } catch (exception) {
+      // Si se intenta añadir un plato a un menú y ya están asignados, o desasignar uno que no se corresponde, lanzará el error
       done = false;
       error = exception;
     }
 
     this[VIEW].showNewUpdateAssignModal(done, menu, dishes, option, error);
+  };
+
+  // Manejador que recoge el nombre del alérgeno, los platos seleccionados y el radio (añadir o eliminar) para
+  // asignar o desasignar alérgenos a los platos
+  handleUpdateAllergens = (allName, dishes, option) => {
+    let auxDish;
+    let done;
+    let error;
+
+    const allergen = this[MODEL].createAllergen(
+      allName,
+      RestaurantsManager.Allergen
+    );
+
+    try {
+      if (option === "ncAdd") {
+        for (const dish of dishes) {
+          auxDish = this[MODEL].createDish(dish, RestaurantsManager.Dish);
+          this[MODEL].assignAllergenToDish(allergen, auxDish);
+        }
+      } else {
+        for (const dish of dishes) {
+          auxDish = this[MODEL].createDish(dish, RestaurantsManager.Dish);
+          this[MODEL].desassignAllergenToDish(allergen, auxDish);
+        }
+      }
+      done = true;
+    } catch (exception) {
+      // Si se intenta añadir un plato a un alérgeno y ya están asignados, o desasignar uno que no se corresponde, lanzará el error
+      done = false;
+      error = exception;
+    }
+
+    this[VIEW].showNewUpdateAllergenModal(
+      done,
+      allergen,
+      dishes,
+      option,
+      error
+    );
   };
 
   /** --- FIN PRACTICA 7 --- */
