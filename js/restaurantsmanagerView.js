@@ -1,4 +1,10 @@
-import { newDishValidation } from "./validation.js";
+import {
+  newDishValidation,
+  newCategoryValidation,
+  newRestaurantValidation,
+  newUpdateAssignValidation,
+  newUpdateAllergenValidation,
+} from "./validation.js";
 // Symbol dónde se introducirá la vista de RestaurantManager
 const EXECUTE_HANDLER = Symbol("executeHandler");
 
@@ -106,43 +112,15 @@ class RestaurantsManagerView {
 
   // Función que permite mostrar en el menú de navegación un ítem dropdown con las categorías
   showCategoriesInMenu(categories) {
-    // Crea un div y le asignamos formato de navegación
-    const div = document.createElement("div");
-    div.classList.add("nav-item", "dropdown", "navbar__menu");
-    // Le insertamos el HTML que permite que sea dropdown
-    div.insertAdjacentHTML(
-      "beforeend",
-      `<a
-          class=" dropdown-toggle"
-          href="#dish-list"
-          id="navCats"
-          role="button"
-          data-bs-toggle="dropdown"
-          aria-expanded="false">
-          Categorías
-        </a>`
-    );
-
-    // Crea un div y le asigna el formato que será el desplegable
-    const container = document.createElement("div");
-    container.classList.add("dropdown-menu");
-    // Recorremos las categorías y se insertarán dentro del desplegable
+    const navCats = document.getElementById("navCats");
+    const container = navCats.nextElementSibling;
+    container.replaceChildren();
     for (const category of categories) {
       container.insertAdjacentHTML(
         "beforeend",
-        `
-            <a
-              data-category="${category.category.name}"
-              class="dropdown-item"
-              href="#dish-list"
-            >
-              ${category.category.name}
-            </a>`
+        `<li><a data-category="${category.category.name}" class="dropdown-item fw-bold" href="#dish-list">${category.category.name}</a></li>`
       );
     }
-    div.append(container);
-    // Inserta el menú de navegación creado
-    this.menu.append(div);
   }
 
   // Función que permite mostrar en el menú de navegación un ítem dropdown con los alérgenos
@@ -229,43 +207,15 @@ class RestaurantsManagerView {
 
   // Función que permite mostrar en el menú de navegación un ítem dropdown con los restaurantes registrados
   showRestaurantsInMenu(restaurants) {
-    // Crea un div y le asignamos formato de navegación
-    const div = document.createElement("div");
-    div.classList.add("nav-item", "dropdown", "navbar__menu");
-    // Le insertamos el HTML que permite que sea dropdown
-    div.insertAdjacentHTML(
-      "beforeend",
-      `<a
-        class="dropdown-toggle"
-        href="#"
-        id="navRests"
-        role="button"
-        data-bs-toggle="dropdown"
-        aria-expanded="false">
-        Restaurantes
-      </a>`
-    );
-
-    // Crea un div y le asigna el formato que será el desplegable
-    const container = document.createElement("div");
-    container.classList.add("dropdown-menu");
-    // Recorremos los restaurantes y se insertarán dentro del desplegable
+    const navRests = document.getElementById("navRests");
+    const container = navRests.nextElementSibling;
+    container.replaceChildren();
     for (const rest of restaurants) {
       container.insertAdjacentHTML(
         "beforeend",
-        `
-          <a
-            data-rest="${rest.restaurant.name}"
-            class="dropdown-item"
-            href="#restaurant"
-          >
-            ${rest.restaurant.name}
-          </a>`
+        `<li><a data-rest="${rest.restaurant.name}" class="dropdown-item fw-bold" href="#restaurant">${rest.restaurant.name}</a></li>`
       );
     }
-    div.append(container);
-    // Inserta el menú de navegación creado
-    this.menu.append(div);
   }
 
   // Función que permite mostrar una tarjeta personalizada con la información de cada restaurante
@@ -615,7 +565,11 @@ class RestaurantsManagerView {
     );
     subContainer.insertAdjacentHTML(
       "beforeend",
-      '<a id="updAssign" class="dropdown-item text--green fw-bold" href="#upd-assign">Modificar asignación</a> <li><hr class="dropdown-divider border--green1"></li>'
+      '<a id="updAssign" class="dropdown-item text--green fw-bold" href="#upd-assign">Modificar asignación</a></li>'
+    );
+    subContainer.insertAdjacentHTML(
+      "beforeend",
+      '<a id="updAllergen" class="dropdown-item text--green fw-bold" href="#upd-allergen">Modificar alérgeno</a><li><hr class="dropdown-divider border--green1"></li>'
     );
     subContainer.insertAdjacentHTML(
       "beforeend",
@@ -624,10 +578,6 @@ class RestaurantsManagerView {
     subContainer.insertAdjacentHTML(
       "beforeend",
       '<a id="delCategory" class="dropdown-item text--green fw-bold" href="#del-category">Eliminar categoría</a>'
-    );
-    subContainer.insertAdjacentHTML(
-      "beforeend",
-      '<a id="updCategory" class="dropdown-item text--green fw-bold" href="#upd-category">Modificar categoría</a> <li><hr class="dropdown-divider border--green1"></li>'
     );
     subContainer.insertAdjacentHTML(
       "beforeend",
@@ -641,10 +591,18 @@ class RestaurantsManagerView {
 
   // Muestra el formulario para la creación de un nuevo plato
   showNewDishForm(categories, allergens) {
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    // Creamos un elemento con el nombre del plato y lo agrega a las migas de pan
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Crear plato";
+    ol.appendChild(li);
+
+    this.centralzone.replaceChildren();
     this.initzone.replaceChildren();
-    if (this.centralzone.children.length > 0) {
-      this.centralzone.children[0].remove();
-    }
 
     // Crea un elemento form
     let form = document.createElement("form");
@@ -660,9 +618,9 @@ class RestaurantsManagerView {
     form.insertAdjacentHTML(
       "beforeend",
       `<div class="col-md-12 mb-3">
-				<label class="form-label" for="ncName">Nombre de plato *</label>
+				<label class="form-label" for="ncName">Nombre de plato: *</label>
 				<div class="input-group">
-					<span class="input-group-text"><i class="bi bi-type"></i></span>
+					<span class="input-group-text"><i class="fa-solid fa-font"></i></span>
 					<input type="text" class="form-control" id="ncName" name="ncName"
 						placeholder="Nombre del plato" required>
 					<div class="invalid-feedback">Debes introducir el nombre del plato obligatoriamente.</div>
@@ -672,7 +630,7 @@ class RestaurantsManagerView {
       <div class="col-md-12 mb-3">
 				<label class="form-label" for="ncIngredients">Ingredientes: </label>
 				<div class="input-group">
-					<span class="input-group-text"><i class="bi bi-type"></i></span>
+					<span class="input-group-text"><i class="fa-solid fa-carrot"></i></span>
 					<input type="text" class="form-control" id="ncIngredients" name="ncIngredients"
 						placeholder="Ej: Pimienta,Sal,Patata">
 					<div class="invalid-feedback"></div>
@@ -684,23 +642,23 @@ class RestaurantsManagerView {
        <input class="form-control form-control-sm" id="ncImage" name="ncImage" type="file">
       </div>
       <div class="col-md-12 mb-3">
-        <label class="form-label" for="ncCategories">Seleccionar categoría:</label>
+        <label class="form-label" for="ncCategories">Seleccionar categoría: (una opción)</label>
         <div class="input-group">
             <select id="selectCategories" name="ncCategories" class="form-select" size="3" aria-label="Multiple select categorys">
             </select>
         </div>
       </div>
       <div class="col-md-12 mb-3">
-        <label class="form-label" for="ncAllergens">Seleccionar alérgeno:</label>
+        <label class="form-label" for="ncAllergens">Seleccionar alérgeno: (múltiples opciones)</label>
         <div class="input-group">
             <select id="selectAllergens" name="ncAllergens" class="form-select" size="3" multiple aria-label="Multiple select allergens">
             </select>
         </div>
       </div>
       <div class="col-md-12 mb-3">
-        <label class="form-label" for="ncDescription">Descripción</label>
+        <label class="form-label" for="ncDescription">Descripción:</label>
        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-body-text"></i></span>
+          <span class="input-group-text"><i class="fa-regular fa-rectangle-list"></i></span>
           <input type="text" class="form-control" id="ncDescription" name="ncDescription" value="">
          <div class="invalid-feedback"></div>
           <div class="valid-feedback">Correcto.</div>
@@ -731,7 +689,455 @@ class RestaurantsManagerView {
         `<option value="${allergen.allergen.name}">${allergen.allergen.name}</option>`
       );
     }
+
+    // Inserta un título previo al formulario
+    let div = document.createElement("div");
+    div.insertAdjacentHTML(
+      "beforeend",
+      `<h1 class="text--green fw-bold my-5 mx-2">Agregar un nuevo plato</h1>`
+    );
+    div.id = "new-dish";
+    form.insertAdjacentElement("beforebegin", div);
   }
+
+  // Función que vista todos los platos con un botón, permitiendo su posterior eliminación
+  showRemoveDishForm(dishes) {
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    // Creamos un elemento con el nombre del plato y lo agrega a las migas de pan
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Eliminar plato";
+    ol.appendChild(li);
+
+    this.centralzone.replaceChildren();
+    this.initzone.replaceChildren();
+
+    const container = document.createElement("div");
+    container.classList.add("container", "my-3");
+    container.id = "remove-dish";
+    container.insertAdjacentHTML(
+      "afterbegin",
+      '<h1 class="display-5 text--green mt-5">Eliminar un plato</h1>'
+    );
+
+    const row = document.createElement("div");
+    row.classList.add("row");
+
+    for (const dish of dishes) {
+      row.insertAdjacentHTML(
+        "beforeend",
+        `<div class="col-lg-3 col-md-6 my-3">
+          <a data-dish="${dish.dish.name}" href="#dish-list" class="text--green">
+            <div>
+              <img alt="${dish.dish.name}" src="${dish.dish.image}" class="img-fluid" />
+            </div>
+            <div>
+              <h3 class="text--green fw-bold mt-2">${dish.dish.name}</h3>
+              <div class="text--green">${dish.dish.description}</div>
+            </div>
+            <div>
+              <button
+                class="newfood__content__button"
+                data-dish="${dish.dish.name}"
+                type="button"
+              >
+                Eliminar
+              </button>
+            </div>
+          </a>
+        </div>`
+      );
+    }
+    container.append(row);
+    this.centralzone.append(container);
+  }
+
+  // Muestra el formulario para la creación de una nueva categoría
+  showNewCategoryForm() {
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    // Creamos un elemento con el nombre del plato y lo agrega a las migas de pan
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Crear categoría";
+    ol.appendChild(li);
+
+    this.centralzone.replaceChildren();
+    this.initzone.replaceChildren();
+
+    // Crea un elemento form
+    let form = document.createElement("form");
+    form.name = "fNewCategory";
+    form.role = "form";
+    form.classList.add("my-5", "py-5");
+    form.insertAdjacentHTML(
+      "afterbegin",
+      `
+    <form class="row g-3" novalidate ></form>`
+    );
+
+    form.insertAdjacentHTML(
+      "beforeend",
+      `<div class="col-md-12 mb-3">
+				<label class="form-label" for="ncName">Nombre de Categoría: *</label>
+				<div class="input-group">
+					<span class="input-group-text"><i class="fa-solid fa-font"></i></span>
+					<input type="text" class="form-control" id="ncName" name="ncName"
+						placeholder="Nombre de la categoría" required>
+					<div class="invalid-feedback">Debes introducir el nombre de la categoría obligatoriamente.</div>
+					<div class="valid-feedback">Correcto!</div>
+				</div>
+			</div>
+      <div class="col-md-12 mb-3">
+        <label class="form-label" for="ncDescription">Descripción:</label>
+       <div class="input-group">
+          <span class="input-group-text"><i class="fa-regular fa-rectangle-list"></i></span>
+          <input type="text" class="form-control" id="ncDescription" name="ncDescription" value="">
+         <div class="invalid-feedback"></div>
+          <div class="valid-feedback">Correcto.</div>
+      </div>
+    </div>
+    
+      <button class=" newfood__content__button" type="submit">Enviar</button>
+      <button class=" newfood__content__button" type="reset">Cancelar</button>
+    `
+    );
+
+    this.centralzone.append(form);
+
+    // Inserta un título previo al formulario
+    let div = document.createElement("div");
+    div.insertAdjacentHTML(
+      "beforeend",
+      `<h1 class="text--green fw-bold my-5 mx-2">Agregar una nueva categoría</h1>`
+    );
+    div.id = "new-category";
+    form.insertAdjacentElement("beforebegin", div);
+  }
+
+  // Muestra el formulario para la eliminación de las categorías
+  showRemoveCategoryForm(categories) {
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    // Creamos un elemento con el nombre y lo agrega a las migas de pan
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Eliminar categoría";
+    ol.appendChild(li);
+
+    this.centralzone.replaceChildren();
+    this.initzone.replaceChildren();
+
+    const container = document.createElement("div");
+    container.classList.add("container", "my-3");
+    container.id = "remove-category";
+    container.insertAdjacentHTML(
+      "afterbegin",
+      '<h1 class="display-5 text--green mt-5">Eliminar categorías</h1>'
+    );
+
+    const row = document.createElement("div");
+    row.classList.add("row");
+
+    for (const category of categories) {
+      row.insertAdjacentHTML(
+        "beforeend",
+        `<div class="col-lg-3 col-md-6 m-3 p-3 border--green rounded">
+          <a data-category="${category.category.name}" class="text--green">
+            <div>
+              <h3 class="text--green fw-bold mt-2">${category.category.name}</h3>
+              <div class="text--green">${category.category.description}</div>
+            </div>
+            <div>
+              <button
+                class="newfood__content__button"
+                data-category="${category.category.name}"
+                type="button"
+              >
+                Eliminar
+              </button>
+            </div>
+          </a>
+        </div>`
+      );
+    }
+    container.append(row);
+    this.centralzone.append(container);
+  }
+
+  // Muestra el formulario para la creación de un nuevo restaurante
+  showNewRestaurantForm() {
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Crear restaurante";
+    ol.appendChild(li);
+
+    this.initzone.replaceChildren();
+    this.centralzone.replaceChildren();
+
+    // Crea un elemento form
+    let form = document.createElement("form");
+    form.name = "fNewRestaurant";
+    form.role = "form";
+    form.classList.add("my-5", "p-3");
+    form.insertAdjacentHTML(
+      "afterbegin",
+      `<form class="row g-3" novalidate ></form>`
+    );
+
+    form.insertAdjacentHTML(
+      "beforeend",
+      `<div class="col-md-12 mb-4">
+      <label class="form-label" for="ncName">Nombre del Restaurante: *</label>
+      <div class="input-group">
+          <span class="input-group-text"><i class="fa-solid fa-font"></i></span>
+          <input type="text" class="form-control" id="ncName" name="ncName" placeholder="Nombre del Restaurante" required>
+          <div class="invalid-feedback">Debes introducir el nombre del restaurante obligatoriamente.</div>
+          <div class="valid-feedback">Correcto!</div>
+      </div>
+  </div>
+  
+  <div class="col-md-12 mb-4">
+      <label class="form-label" for="ncDescription">Descripción:</label>
+      <div class="input-group">
+          <span class="input-group-text"><i class="fa-regular fa-rectangle-list"></i></span>
+          <input type="text" class="form-control" id="ncDescription" name="ncDescription" value="">
+          <div class="invalid-feedback"></div>
+          <div class="valid-feedback">Correcto.</div>
+      </div>
+  </div>
+  
+  <div class="row">
+      <div class="col-md-6 mb-4">
+          <label class="form-label" for="ncLatitude">Latitud:</label>
+          <div class="input-group">
+              <span class="input-group-text"><i class="fa-solid fa-location-crosshairs"></i></span>
+              <input type="text" class="form-control" placeholder="Ej: 25.283" id="ncLatitude" name="ncLatitude">
+              <div class="invalid-feedback">La latitud debe ir entre -90 y 90.</div>
+              <div class="valid-feedback">Correcto.</div>
+          </div>
+      </div>
+  
+      <div class="col-md-6 mb-4">
+          <label class="form-label" for="ncLatitude">Longitud:</label>
+          <div class="input-group">
+              <span class="input-group-text"><i class="fa-solid fa-location-crosshairs"></i></span>
+              <input type="text" class="form-control" placeholder="Ej: -55.283"  id="ncLongitude" name="ncLongitude">
+              <div class="invalid-feedback">La longitud debe ir entre -180 y 180.</div>
+              <div class="valid-feedback">Correcto.</div>
+          </div>
+      </div>
+  </div>
+  
+  <button class="newfood__content__button" type="submit">Enviar</button>
+  <button class="newfood__content__button" type="reset">Cancelar</button>`
+    );
+
+    this.centralzone.append(form);
+
+    // Inserta un título previo al formulario
+    let div = document.createElement("div");
+    div.insertAdjacentHTML(
+      "beforeend",
+      `<h1 class="text--green fw-bold my-4 mx-2">Agregar un nuevo restaurante</h1>`
+    );
+    div.id = "new-restaurant";
+    form.insertAdjacentElement("beforebegin", div);
+  }
+
+  // Muestra el formulario para la modificación de asignación de platos a menús
+  showUpdateAssignForm(dishes, menus) {
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Modificar asignaciones";
+    ol.appendChild(li);
+
+    this.initzone.replaceChildren();
+    this.centralzone.replaceChildren();
+
+    // Crea un elemento form
+    let form = document.createElement("form");
+    form.name = "fUpdAssign";
+    form.role = "form";
+    form.classList.add("my-5", "p-3");
+    form.insertAdjacentHTML(
+      "afterbegin",
+      `<form class="row g-3" novalidate ></form>`
+    );
+
+    form.insertAdjacentHTML(
+      "beforeend",
+      ` 
+          <div class="col-md-12 mb-4">
+          <label class="form-label" for="ncMenus">Seleccionar menú: (una opción) *</label>
+          <div class="input-group">
+              <select id="selectMenu" name="ncMenus" class="form-select" size="3"  aria-label="Unique select menú" required>
+              </select>
+              <div class="invalid-feedback">Debe seleccionar obligatoriamente un menú para la asignación.</div>
+              <div class="valid-feedback">Correcto!</div>
+          </div>
+        </div>
+        <div class="col-md-12 mb-4">
+          <label class="form-label" for="ncDishes">Seleccionar plato: (múltiples opciones) *</label>
+          <div class="input-group">
+              <select id="selectDishes" name="ncDishes" class="form-select" size="3" multiple aria-label="Multiple select burgers" required>
+              </select>
+              <div class="invalid-feedback">Debe seleccionar al menos un plato.</div>
+              <div class="valid-feedback">Correcto!</div>
+          </div>
+        </div>
+        <div class="col-md-12 mb-4 text-center">
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="ncAssignOption" id="ncAssign" value="ncAssign" checked>
+          <label class="form-check-label" for="ncAssign">Asignar</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="ncAssignOption" id="ncDesassign" value="ncDesassign">
+          <label class="form-check-label" for="ncDesassign">Desasignar</label>
+        </div>
+        </div>
+  
+  
+    <button class="newfood__content__button" type="submit">Enviar</button>
+    <button class="newfood__content__button" type="reset">Cancelar</button>`
+    );
+
+    this.centralzone.append(form);
+
+    // Recogemos los select del formulario para hacerlos dinámicos
+    let selectMenu = document.getElementById("selectMenu");
+    let selectDishes = document.getElementById("selectDishes");
+
+    for (const menu of menus) {
+      selectMenu.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${menu.menu.name}">${menu.menu.name}</option>`
+      );
+    }
+
+    for (const dish of dishes) {
+      selectDishes.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${dish.dish.name}">${dish.dish.name}</option>`
+      );
+    }
+
+    // Inserta un título previo al formulario
+    let div = document.createElement("div");
+    div.insertAdjacentHTML(
+      "beforeend",
+      `<h1 class="text--green fw-bold my-4 mx-2">Modificar asignaciones</h1>`
+    );
+    div.id = "new-restaurant";
+    form.insertAdjacentElement("beforebegin", div);
+  }
+
+  // Muestra el formulario para la modificación de platos a menús
+  showUpdateAllergenForm(dishes, allergens) {
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Modificar alérgenos";
+    ol.appendChild(li);
+
+    this.initzone.replaceChildren();
+    this.centralzone.replaceChildren();
+
+    // Crea un elemento form
+    let form = document.createElement("form");
+    form.name = "fUpdAllergen";
+    form.role = "form";
+    form.classList.add("my-5", "p-3");
+    form.insertAdjacentHTML(
+      "afterbegin",
+      `<form class="row g-3" novalidate ></form>`
+    );
+
+    form.insertAdjacentHTML(
+      "beforeend",
+      `<div class="col-md-12 mb-4">
+        <label class="form-label" for="ncAllergens">Seleccionar alérgeno: (una opción) *</label>
+            <div class="input-group">
+                <select id="selectAllergens" name="ncAllergens" class="form-select" size="4" aria-label="Unique select allergens" required>
+                </select>
+                <div class="invalid-feedback">Debe seleccionar obligatoriamente al menos un alérgeno.</div>
+                <div class="valid-feedback">Correcto!</div>
+            </div>
+          </div>
+         <div class="col-md-12 mb-4">
+          <label class="form-label" for="ncDishes">Seleccionar plato: (múltiples opciones) *</label>
+          <div class="input-group">
+              <select id="selectDishes" name="ncDishes" class="form-select" size="5" multiple aria-label="Multiple select burger" required>
+              </select>
+              <div class="invalid-feedback">Debe seleccionar obligatoriamente uno o más platos.</div>
+              <div class="valid-feedback">Correcto!</div>
+          </div>
+        </div>
+      <div class="col-md-12 mb-4 text-center">
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="ncAssignOption" id="ncAdd" value="ncAdd" checked>
+        <label class="form-check-label" for="ncAdd">Añadir alérgeno</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="ncAssignOption" id="ncRemove" value="ncRemove">
+        <label class="form-check-label" for="ncRemove">Eliminar alérgeno</label>
+      </div>
+      </div>
+
+
+  <button class="newfood__content__button" type="submit">Enviar</button>
+  <button class="newfood__content__button" type="reset">Cancelar</button>`
+    );
+
+    this.centralzone.append(form);
+
+    // Recogemos los select del formulario para hacerlos dinámicos
+    let selectDishes = document.getElementById("selectDishes");
+    let selectAllergens = document.getElementById("selectAllergens");
+
+    for (const all of allergens) {
+      selectAllergens.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${all.allergen.name}">${all.allergen.name}</option>`
+      );
+    }
+
+    for (const dish of dishes) {
+      selectDishes.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${dish.dish.name}">${dish.dish.name}</option>`
+      );
+    }
+
+    // Inserta un título previo al formulario
+    let div = document.createElement("div");
+    div.insertAdjacentHTML(
+      "beforeend",
+      `<h1 class="text--green fw-bold my-4 mx-2">Modificar alérgenos</h1>`
+    );
+    div.id = "new-restaurant";
+    form.insertAdjacentElement("beforebegin", div);
+  }
+
+  /** ----------- INICIO MODALES -----------  */
 
   // Modal que se abre cuando se crea un plato, indicando si se ha creado o no correctamente.
   showNewDishModal(done, dish, error) {
@@ -750,7 +1156,7 @@ class RestaurantsManagerView {
     } else {
       body.insertAdjacentHTML(
         "afterbegin",
-        `<div class="error text-danger p-3"><i class="bi bi-exclamation-triangle"></i> El plato <strong>${dish.name}</strong> ya está creado.</div>`
+        `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i> El plato <strong>${dish.name}</strong> ya está creado.</div>`
       );
     }
     messageModal.show();
@@ -764,11 +1170,248 @@ class RestaurantsManagerView {
       once: true,
     });
   }
+
+  // Modal que se abre cuando se realiza el intento de eliminar un plato
+  showRemoveDishModal(done, dish, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Borrado de plato";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="p-3">El plato
+    <strong>${dish.name}</strong> ha sido eliminado correctamente.</div>`
+      );
+    } else {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i> El plato <strong>${dish.name}</strong> no se ha podido
+    borrar.</div>`
+      );
+    }
+    messageModal.show();
+  }
+
+  // Modal qeu se abre cuando se realiza el intento de insertar una nueva categoría
+  showNewCategoryModal(done, cat, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Nueva Categoría";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="p-3">La categoría <strong>${cat.name}</strong> ha sido creada correctamente.</div>`
+      );
+    } else {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i> La categoría <strong>${cat.name}</strong> ya está creada.</div>`
+      );
+    }
+    messageModal.show();
+    const listener = (event) => {
+      if (done) {
+        document.fNewCategory.reset();
+      }
+      document.fNewCategory.ncName.focus();
+    };
+    messageModalContainer.addEventListener("hidden.bs.modal", listener, {
+      once: true,
+    });
+  }
+
+  // Modal que se abre cuando se realiza el intento de eliminar un plato
+  showRemoveCategoryModal(done, cat, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Borrado de categoría";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="p-3">La categoría
+    <strong>${cat.name}</strong> ha sido eliminada correctamente.</div>`
+      );
+    } else {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i>La categoría <strong>${cat.name}</strong> no se ha podido
+    borrar.</div>`
+      );
+    }
+    messageModal.show();
+  }
+
+  // Modal que se abre cuando se realiza el intento de insertar un nuevo restaurante
+  showNewRestaurantModal(done, rest, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Nuevo Restaurante";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="p-3">El restaurante <strong>${rest.name}</strong> ha sido creado correctamente.</div>`
+      );
+    } else {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i>El restaurante <strong>${rest.name}</strong> ya está creada.</div>`
+      );
+    }
+    messageModal.show();
+    const listener = (event) => {
+      if (done) {
+        document.fNewRestaurant.reset();
+      }
+      document.fNewRestaurant.ncName.focus();
+    };
+    messageModalContainer.addEventListener("hidden.bs.modal", listener, {
+      once: true,
+    });
+  }
+
+  // Modal que se abre cuando se crea un plato, indicando si se ha creado o no correctamente.
+  showNewUpdateAssignModal(done, menu, dishes, option, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Modificación de asignación";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      if (option === "ncAssign") {
+        body.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="p-3">Se han asignado correctamente los platos <strong>${dishes.join(
+            ", "
+          )}</strong> al menú
+           <strong>${menu.name}</strong></div>`
+        );
+      } else {
+        body.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="p-3">Se han desasignado correctamente los platos <strong>${dishes.join(
+            ", "
+          )}</strong> al menú
+           <strong>${menu.name}</strong></div>`
+        );
+      }
+    } else {
+      if (option === "ncAssign") {
+        body.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i>
+           Ha ocurrido un error al intentar asignar los platos <strong>${dishes.join(
+             ", "
+           )}</strong> al menú <strong>${menu.name}</strong>.</div>`
+        );
+      } else {
+        body.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i>
+          Ha ocurrido un error al intentar desasignar los platos <strong>${dishes.join(
+            ", "
+          )}</strong> al menú <strong>${menu.name}</strong>.</div>`
+        );
+      }
+    }
+    messageModal.show();
+    const listener = (event) => {
+      if (done) {
+        document.fUpdAssign.reset();
+      }
+    };
+    messageModalContainer.addEventListener("hidden.bs.modal", listener, {
+      once: true,
+    });
+  }
+
+  // Modal que se abre cuando se crea un plato, indicando si se ha creado o no correctamente.
+  showNewUpdateAllergenModal(done, allergen, dishes, option, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Modificación de alérgenos";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      if (option === "ncAdd") {
+        body.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="p-3">Se han añadido correctamente los platos <strong>${dishes.join(
+            ", "
+          )}</strong> al alérgeno
+             <strong>${allergen.name}</strong></div>`
+        );
+      } else {
+        body.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="p-3">Se han eliminado correctamente los platos <strong>${dishes.join(
+            ", "
+          )}</strong> del alérgeno
+             <strong>${allergen.name}</strong></div>`
+        );
+      }
+    } else {
+      if (option === "ncAdd") {
+        body.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i>
+             Ha ocurrido un error al intentar añadir los platos <strong>${dishes.join(
+               ", "
+             )}</strong> al alérgeno <strong>${allergen.name}</strong>.</div>`
+        );
+      } else {
+        body.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i>
+            Ha ocurrido un error al intentar eliminar los platos <strong>${dishes.join(
+              ", "
+            )}</strong> del alérgeno <strong>${allergen.name}</strong>.</div>`
+        );
+      }
+    }
+    messageModal.show();
+    const listener = (event) => {
+      if (done) {
+        document.fUpdAllergen.reset();
+      }
+    };
+    messageModalContainer.addEventListener("hidden.bs.modal", listener, {
+      once: true,
+    });
+  }
+
+  /** ----------- FIN MODALES -----------  */
+
   /** ------------------- MÉTODOS BIND ------------------- */
 
   /** --- PRACTICA 7 --- */
 
-  bindAdminMenu(hNewDish) {
+  bindAdminMenu(
+    hNewDish,
+    hRemoveDish,
+    hNewCategory,
+    hRemoveCategory,
+    hNewRest,
+    hUpdAssign,
+    hUpdAllergen
+  ) {
     const newDishLink = document.getElementById("newDish");
     newDishLink.addEventListener("click", (event) => {
       this[EXECUTE_HANDLER](
@@ -780,13 +1423,121 @@ class RestaurantsManagerView {
         event
       );
     });
+
+    const removeDishLink = document.getElementById("delDish");
+    removeDishLink.addEventListener("click", (event) => {
+      this[EXECUTE_HANDLER](
+        hRemoveDish,
+        [],
+        "#remove-dish",
+        { action: "removeDish" },
+        "#",
+        event
+      );
+    });
+
+    const newCategoryLink = document.getElementById("newCategory");
+    newCategoryLink.addEventListener("click", (event) => {
+      this[EXECUTE_HANDLER](
+        hNewCategory,
+        [],
+        "#new-category",
+        { action: "newCategory" },
+        "#",
+        event
+      );
+    });
+
+    const removeCategoryLink = document.getElementById("delCategory");
+    removeCategoryLink.addEventListener("click", (event) => {
+      this[EXECUTE_HANDLER](
+        hRemoveCategory,
+        [],
+        "#remove-category",
+        { action: "removeCategory" },
+        "#",
+        event
+      );
+    });
+    const newRestLink = document.getElementById("newRestaurant");
+    newRestLink.addEventListener("click", (event) => {
+      this[EXECUTE_HANDLER](
+        hNewRest,
+        [],
+        "#new-restaurant",
+        { action: "newRestaurant" },
+        "#",
+        event
+      );
+    });
+    const updAssignLink = document.getElementById("updAssign");
+    updAssignLink.addEventListener("click", (event) => {
+      this[EXECUTE_HANDLER](
+        hUpdAssign,
+        [],
+        "#upd-assign",
+        { action: "updAssign" },
+        "#",
+        event
+      );
+    });
+    const updAllergenLink = document.getElementById("updAllergen");
+    updAllergenLink.addEventListener("click", (event) => {
+      this[EXECUTE_HANDLER](
+        hUpdAllergen,
+        [],
+        "#upd-allergen",
+        { action: "updAllergen" },
+        "#",
+        event
+      );
+    });
   }
 
+  // Manejadores que requieren de la validación del formulario
   bindNewDishForm(handler) {
     newDishValidation(handler);
   }
 
-  /** --- FIN PRACTICA 6  **/
+  bindNewCategoryForm(handler) {
+    newCategoryValidation(handler);
+  }
+
+  bindNewRestaurantForm(handler) {
+    newRestaurantValidation(handler);
+  }
+
+  bindUpdateAssignForm(handler) {
+    newUpdateAssignValidation(handler);
+  }
+
+  bindUpdateAllergenForm(handler) {
+    newUpdateAllergenValidation(handler);
+  }
+
+  // Vincula a cada botón de eliminar los platos el manejador, pasándole el plato a través del dataset
+  bindRemoveDishForm(handler) {
+    const removeContainer = document.getElementById("remove-dish");
+    const buttons = removeContainer.getElementsByTagName("button");
+    for (const button of buttons) {
+      button.addEventListener("click", function (event) {
+        handler(this.dataset.dish);
+      });
+    }
+  }
+
+  // Vincula a cada botón de eliminar categorías el manejador, pasándole la categoría a través del dataset
+  bindRemoveCategoryForm(handler) {
+    const removeContainer = document.getElementById("remove-category");
+    const buttons = removeContainer.getElementsByTagName("button");
+    for (const button of buttons) {
+      button.addEventListener("click", function (event) {
+        handler(this.dataset.category);
+      });
+    }
+  }
+
+  /** --- FIN PRACTICA 7  **/
 
   // Modificado el método para poder invocar a [EXECUTE_HANDLER]()
   bindInit(handler) {
@@ -799,6 +1550,7 @@ class RestaurantsManagerView {
       for (const element of elements) {
         if (element !== ol.firstElementChild) element.remove();
       }
+
       this[EXECUTE_HANDLER](
         handler,
         [],
@@ -817,6 +1569,9 @@ class RestaurantsManagerView {
       for (const element of elements) {
         if (element !== ol.firstElementChild) element.remove();
       }
+
+      this.centralzone.children[0].remove();
+
       this[EXECUTE_HANDLER](
         handler,
         [],
@@ -873,7 +1628,7 @@ class RestaurantsManagerView {
   bindDishesCategoryListInMenu(handler) {
     // Obtiene el elemento de navCats y recoge el siguiente hermano con el tag <a>
     const navCats = document.getElementById("navCats");
-    const links = navCats.nextSibling.querySelectorAll("a");
+    const links = navCats.nextElementSibling.querySelectorAll("a");
     // Los recorre y recupera el nombre de la categoría con el atributo personalizado dataset.category
     for (const link of links) {
       link.addEventListener("click", (event) => {
@@ -936,7 +1691,7 @@ class RestaurantsManagerView {
   bindRestaurantListInMenu(handler) {
     // Obtiene el elemento de navRests y recoge los tag <a>
     const navRests = document.getElementById("navRests");
-    const links = navRests.nextSibling.querySelectorAll("a");
+    const links = navRests.nextElementSibling.querySelectorAll("a");
     // Los recorre y añade un manejador de eventos para aquellos con el atributo rest
     for (const link of links) {
       link.addEventListener("click", (event) => {

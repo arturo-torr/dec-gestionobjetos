@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/c1ddac86a9.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="img/logoburger.png">
     <title>Restaurante - Arturo Torres</title>
@@ -16,8 +17,19 @@
         <nav class="navbar">
             <div class="navbar__menu"><a href="#" id="logo" class="navbar__menu"> <img src="img/logoburger.png"
                         alt="Logo" class="navbar__logo"></a></div>
-
             <div class="navbar__menu"><a href="#" id="init" class="navbar__menu">Inicio</a></div>
+            <div class="nav-item dropdown navbar__menu">
+                <a class="nav-link dropdown-toggle show" href="#" id="navCats" role="button" data-bs-toggle="dropdown"
+                    aria-expanded="true">Categorías</a>
+                <ul class="dropdown-menu" data-bs-popper="static">
+                </ul>
+            </div>
+            <div class="nav-item dropdown navbar__menu">
+                <a class="nav-link dropdown-toggle show" href="#" id="navRests" role="button" data-bs-toggle="dropdown"
+                    aria-expanded="true">Restaurantes</a>
+                <ul class="dropdown-menu" data-bs-popper="static">
+                </ul>
+            </div>
             <!-- <div class="navbar__menu"><a href="nosotros.html">Nosotros</a></div>
             <div class="navbar__menu"><a href="form.html">Reservas</a></div> -->
         </nav>

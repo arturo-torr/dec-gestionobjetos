@@ -288,10 +288,10 @@ form {
     box-shadow: 0px 0px 5px #8CDD00;
 }
 
-form input:focus:not(.submit), textarea:focus, select:focus {
+/* form input:focus:not(.submit), textarea:focus, select:focus {
     background-color: #f5ffe2;
     font-weight: bold;
-}
+} */
 
 #login, #contact {
     display: grid;
@@ -300,24 +300,24 @@ form input:focus:not(.submit), textarea:focus, select:focus {
     margin-bottom: 2vh;
 }
 
-input {
+/* input {
     padding: 15px;
     border: 1px solid lightgrey;
     border-radius: 5px;
-}
+} */
 
-#selects {
+/* #selects {
     display: grid;
     grid-template-columns: repeat(2, 50%);
     justify-items: center;
     margin-bottom: 2vh;
     margin-top: 2vh;
-}
-
+} */
+/* 
 select {
     border: 1px solid lightgrey;
     border-radius: 5px;
-}
+} */
 
 .date__sel, .time__sel {
     display: grid;
@@ -349,6 +349,7 @@ textarea {
     width: 100%;
 }
 
+/* 
 .submit {
     display: block;
     width: 25%;
@@ -360,7 +361,7 @@ textarea {
     cursor: pointer;
     border: 2px solid #6db500;
     border-radius: 5px;
-}
+} */
 
 .submit:hover {
     background-color: #8CDD00;

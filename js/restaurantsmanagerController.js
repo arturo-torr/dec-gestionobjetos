@@ -269,13 +269,54 @@ class RestaurantsManagerController {
     this.onAddRestaurant();
     this.onAddClose();
     this[VIEW].showAdminMenu();
-    this[VIEW].bindAdminMenu(this.handleNewDishForm);
+    this[VIEW].bindAdminMenu(
+      this.handleNewDishForm,
+      this.handleRemoveDishForm,
+      this.handleNewCategoryForm,
+      this.handleRemoveCategoryForm,
+      this.handleNewRestaurantForm,
+      this.handleUpdAssignForm,
+      this.handleUpdAllergenForm
+    );
   };
 
   /** --- PRACTICA 7 --- */
   handleNewDishForm = () => {
     this[VIEW].showNewDishForm(this[MODEL].categories, this[MODEL].allergens);
     this[VIEW].bindNewDishForm(this.handleCreateDish);
+  };
+
+  handleRemoveDishForm = () => {
+    this[VIEW].showRemoveDishForm(this[MODEL].dishes);
+    this[VIEW].bindRemoveDishForm(this.handleRemoveDish);
+  };
+
+  handleNewCategoryForm = () => {
+    this[VIEW].showNewCategoryForm();
+    this[VIEW].bindNewCategoryForm(this.handleCreateCategory);
+  };
+
+  handleRemoveCategoryForm = () => {
+    this[VIEW].showRemoveCategoryForm(this[MODEL].categories);
+    this[VIEW].bindRemoveCategoryForm(this.handleRemoveCategory);
+  };
+
+  handleNewRestaurantForm = () => {
+    this[VIEW].showNewRestaurantForm();
+    this[VIEW].bindNewRestaurantForm(this.handleCreateRestaurant);
+  };
+
+  handleUpdAssignForm = () => {
+    this[VIEW].showUpdateAssignForm(this[MODEL].dishes, this[MODEL].menus);
+    this[VIEW].bindUpdateAssignForm(this.handleUpdateMenus);
+  };
+
+  handleUpdAllergenForm = () => {
+    this[VIEW].showUpdateAllergenForm(
+      this[MODEL].dishes,
+      this[MODEL].allergens
+    );
+    this[VIEW].bindUpdateAllergenForm(this.handleUpdateAllergens);
   };
 
   // Manejador que recibe los datos del formulario de creación de platos
@@ -317,6 +358,161 @@ class RestaurantsManagerController {
       error = exception;
     }
     this[VIEW].showNewDishModal(done, dish, error);
+  };
+
+  // Manejador que recibe el nombre de un plato y procede a su borrado
+  handleRemoveDish = (name) => {
+    let done;
+    let error;
+    let dish;
+
+    try {
+      dish = this[MODEL].createDish(name, RestaurantsManager.Dish);
+      this[MODEL].removeDish(dish);
+      done = true;
+      // Vuelve a invocar al formulario para que aparezca actualizado
+      this.handleRemoveDishForm();
+    } catch (exception) {
+      done = false;
+      error = exception;
+    }
+    this[VIEW].showRemoveDishModal(done, dish, error);
+  };
+
+  // Recibe el nombre y descripción (si la tiene) de una categoría, la crea y actualiza los menús
+  // Posteriormente lanza el modal
+  handleCreateCategory = (name, desc) => {
+    const cat = this[MODEL].createCategory(name, RestaurantsManager.Category);
+    if (cat) cat.description = desc;
+
+    let done;
+    let error;
+    try {
+      this[MODEL].addCategory(cat);
+      // Actualiza el menú para que se muestre la nueva categoría creada
+      this.onAddCategory();
+      done = true;
+    } catch (exception) {
+      done = false;
+      error = exception;
+    }
+    this[VIEW].showNewCategoryModal(done, cat, error);
+  };
+
+  // Manejador que recibe el nombre de una categoría y procede a su borrado
+  handleRemoveCategory = (name) => {
+    let done;
+    let error;
+    let cat;
+
+    try {
+      cat = this[MODEL].createDish(name, RestaurantsManager.Category);
+      this[MODEL].removeCategory(cat);
+      done = true;
+      // Vuelve a invocar al formulario para que aparezca actualizado
+      this.handleRemoveCategoryForm();
+      // Actualiza el menú para no mostrar la categoría borrada
+      this.onAddCategory();
+    } catch (exception) {
+      done = false;
+      error = exception;
+    }
+    this[VIEW].showRemoveCategoryModal(done, cat, error);
+  };
+
+  // Recibe el nombre, descripción y coordenadas de un restaurante, lo crea y actualiza los menús
+  // Posteriormente lanza el modal
+  handleCreateRestaurant = (name, desc, lat, long) => {
+    const rest = this[MODEL].createRestaurant(
+      name,
+      RestaurantsManager.Restaurant
+    );
+    if (rest) rest.description = desc;
+    if (lat && long) rest.location = new Coordinate(lat, long);
+
+    let done;
+    let error;
+    try {
+      this[MODEL].addRestaurant(rest);
+      // Actualiza el menú para que se muestre el nuevo restaurante creado
+      this.onAddRestaurant();
+      done = true;
+    } catch (exception) {
+      done = false;
+      error = exception;
+    }
+    this[VIEW].showNewRestaurantModal(done, rest, error);
+  };
+
+  // Manejador que recibe el nombre del menú, los platos y la opción (Asignar o desasignar) plara realizar
+  // una modificación sobre los platos que están asignados a un menú
+  handleUpdateMenus = (menuName, dishes, option) => {
+    let auxDish;
+    let done;
+    let error;
+
+    const menu = this[MODEL].createMenu(menuName, RestaurantsManager.Menu);
+
+    try {
+      if (option === "ncAssign") {
+        for (const dish of dishes) {
+          auxDish = this[MODEL].createDish(dish, RestaurantsManager.Dish);
+          this[MODEL].assignDishToMenu(menu, auxDish);
+        }
+      } else {
+        for (const dish of dishes) {
+          auxDish = this[MODEL].createDish(dish, RestaurantsManager.Dish);
+          this[MODEL].desassignDishToMenu(menu, auxDish);
+        }
+      }
+      done = true;
+    } catch (exception) {
+      // Si se intenta añadir un plato a un menú y ya están asignados, o desasignar uno que no se corresponde, lanzará el error
+      done = false;
+      error = exception;
+    }
+
+    this[VIEW].showNewUpdateAssignModal(done, menu, dishes, option, error);
+  };
+
+  // Manejador que recoge el nombre del alérgeno, los platos seleccionados y el radio (añadir o eliminar) para
+  // asignar o desasignar alérgenos a los platos
+  handleUpdateAllergens = (allName, dishes, option) => {
+    let auxDish;
+    let done;
+    let error;
+
+    const allergen = this[MODEL].createAllergen(
+      allName,
+      RestaurantsManager.Allergen
+    );
+
+    try {
+      if (option === "ncAdd") {
+        for (const dish of dishes) {
+          auxDish = this[MODEL].createDish(dish, RestaurantsManager.Dish);
+          this[MODEL].assignAllergenToDish(allergen, auxDish);
+        }
+      } else {
+        for (const dish of dishes) {
+          auxDish = this[MODEL].createDish(dish, RestaurantsManager.Dish);
+          this[MODEL].desassignAllergenToDish(allergen, auxDish);
+        }
+      }
+      done = true;
+    } catch (exception) {
+      // Si se intenta añadir un plato a un alérgeno y ya están asignados, o desasignar uno que no se corresponde, lanzará el error
+      done = false;
+      error = exception;
+    }
+
+    this[VIEW].showNewUpdateAllergenModal(
+      done,
+      allergen,
+      dishes,
+      option,
+      error
+    );
   };
 
   /** --- FIN PRACTICA 7 --- */
@@ -439,7 +635,6 @@ class RestaurantsManagerController {
     }
   };
 
-  // ----- PRACTICA 6 -----
   // Manejador para el mostrado de platos en una nueva ventana
   handleShowDishInNewWindow = (name, newWindow) => {
     try {
