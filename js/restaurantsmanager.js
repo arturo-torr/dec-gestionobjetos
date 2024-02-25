@@ -942,7 +942,7 @@ const RestaurantsManager = (function () {
       if (!allergen) {
         allergen = new this.#objectsConstructors[type](name);
       } else {
-        allergen = allergen.allergen;
+        allergen = allergen;
       }
       return allergen;
     }

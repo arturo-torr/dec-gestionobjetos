@@ -2,6 +2,7 @@ import {
   newDishValidation,
   newCategoryValidation,
   newRestaurantValidation,
+  newUpdateAssignValidation,
 } from "./validation.js";
 // Symbol dónde se introducirá la vista de RestaurantManager
 const EXECUTE_HANDLER = Symbol("executeHandler");
@@ -881,8 +882,8 @@ class RestaurantsManagerView {
     li.textContent = "Crear restaurante";
     ol.appendChild(li);
 
-    this.centralzone.replaceChildren();
     this.initzone.replaceChildren();
+    this.centralzone.replaceChildren();
 
     // Crea un elemento form
     let form = document.createElement("form");
@@ -949,6 +950,98 @@ class RestaurantsManagerView {
     div.insertAdjacentHTML(
       "beforeend",
       `<h1 class="text--green fw-bold my-4 mx-2">Agregar un nuevo restaurante</h1>`
+    );
+    div.id = "new-restaurant";
+    form.insertAdjacentElement("beforebegin", div);
+  }
+
+  // Muestra el formulario para la creación de una nueva categoría
+  showUpdateAssignForm(dishes, menus) {
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    // Creamos un elemento con el nombre del plato y lo agrega a las migas de pan
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Modificar asignaciones";
+    ol.appendChild(li);
+
+    this.initzone.replaceChildren();
+    this.centralzone.replaceChildren();
+
+    // Crea un elemento form
+    let form = document.createElement("form");
+    form.name = "fUpdAssign";
+    form.role = "form";
+    form.classList.add("my-5", "p-3");
+    form.insertAdjacentHTML(
+      "afterbegin",
+      `<form class="row g-3" novalidate ></form>`
+    );
+
+    form.insertAdjacentHTML(
+      "beforeend",
+      ` 
+        <div class="col-md-12 mb-4">
+        <label class="form-label" for="ncMenus">Seleccionar menú: (una opción) *</label>
+        <div class="input-group">
+            <select id="selectMenu" name="ncMenus" class="form-select" size="3"  aria-label="Unique select menú" required>
+            </select>
+            <div class="invalid-feedback">Debe seleccionar obligatoriamente un menú para la asignación.</div>
+            <div class="valid-feedback">Correcto!</div>
+        </div>
+      </div>
+      <div class="col-md-12 mb-4">
+        <label class="form-label" for="ncDishes">Seleccionar plato: (múltiples opciones) *</label>
+        <div class="input-group">
+            <select id="selectBurgers" name="ncDishes" class="form-select" size="3" multiple aria-label="Multiple select burgers" required>
+            </select>
+            <div class="invalid-feedback">Debe seleccionar al menos un plato.</div>
+            <div class="valid-feedback">Correcto!</div>
+        </div>
+      </div>
+      <div class="col-md-12 mb-4">
+      <div class="form-check form-check-inline mx-5 ">
+        <input class="form-check-input" type="radio" name="ncAssignOption" id="ncAssign" value="ncAssign" checked>
+        <label class="form-check-label aling-middle" for="inlineRadio1">Asignar</label>
+      </div>
+      <div class="form-check form-check-inline mx-5 ">
+        <input class="form-check-input" type="radio" name="ncAssignOption" id="ncDesassign" value="ncDesassign">
+        <label class="form-check-label aling-middle" for="inlineRadio2">Desasignar</label>
+      </div>
+      </div>
+
+
+  <button class="newfood__content__button" type="submit">Enviar</button>
+  <button class="newfood__content__button" type="reset">Cancelar</button>`
+    );
+
+    this.centralzone.append(form);
+
+    // Recogemos los select del formulario para hacerlos dinámicos
+    let selectMenu = document.getElementById("selectMenu");
+    let selectBurgers = document.getElementById("selectBurgers");
+
+    for (const menu of menus) {
+      selectMenu.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${menu.menu.name}">${menu.menu.name}</option>`
+      );
+    }
+
+    for (const dish of dishes) {
+      selectBurgers.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${dish.dish.name}">${dish.dish.name}</option>`
+      );
+    }
+
+    // Inserta un título previo al formulario
+    let div = document.createElement("div");
+    div.insertAdjacentHTML(
+      "beforeend",
+      `<h1 class="text--green fw-bold my-4 mx-2">Modificar asignaciones</h1>`
     );
     div.id = "new-restaurant";
     form.insertAdjacentElement("beforebegin", div);
@@ -1100,6 +1193,63 @@ class RestaurantsManagerView {
     });
   }
 
+  // Modal que se abre cuando se crea un plato, indicando si se ha creado o no correctamente.
+  showNewUpdateAssignModal(done, menu, dishes, option, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Modificación de asignación";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      if (option === "ncAssign") {
+        body.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="p-3">Se han asignado correctamente los platos <strong>${dishes.join(
+            ", "
+          )}</strong> al menú
+           <strong>${menu.name}</strong></div>`
+        );
+      } else {
+        body.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="p-3">Se han desasignado correctamente los platos <strong>${dishes.join(
+            ", "
+          )}</strong> al menú
+           <strong>${menu.name}</strong></div>`
+        );
+      }
+    } else {
+      if (option === "ncAssign") {
+        body.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i>
+           Ha ocurrido un error al intentar asignar los platos <strong>${dishes.join(
+             ", "
+           )}</strong> al menú <strong>${menu.name}</strong>.</div>`
+        );
+      } else {
+        body.insertAdjacentHTML(
+          "afterbegin",
+          `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i>
+          Ha ocurrido un error al intentar desasignar los platos <strong>${dishes.join(
+            ", "
+          )}</strong> al menú <strong>${menu.name}</strong>.</div>`
+        );
+      }
+    }
+    messageModal.show();
+    const listener = (event) => {
+      if (done) {
+        document.fUpdAssign.reset();
+      }
+    };
+    messageModalContainer.addEventListener("hidden.bs.modal", listener, {
+      once: true,
+    });
+  }
+
   /** ----------- FIN MODALES -----------  */
 
   /** ------------------- MÉTODOS BIND ------------------- */
@@ -1111,7 +1261,8 @@ class RestaurantsManagerView {
     hRemoveDish,
     hNewCategory,
     hRemoveCategory,
-    hNewRest
+    hNewRest,
+    hUpdAssign
   ) {
     const newDishLink = document.getElementById("newDish");
     newDishLink.addEventListener("click", (event) => {
@@ -1171,6 +1322,17 @@ class RestaurantsManagerView {
         event
       );
     });
+    const updAssignLink = document.getElementById("updAssign");
+    updAssignLink.addEventListener("click", (event) => {
+      this[EXECUTE_HANDLER](
+        hUpdAssign,
+        [],
+        "#upd-assign",
+        { action: "updAssign" },
+        "#",
+        event
+      );
+    });
   }
 
   bindNewDishForm(handler) {
@@ -1183,6 +1345,10 @@ class RestaurantsManagerView {
 
   bindNewRestaurantForm(handler) {
     newRestaurantValidation(handler);
+  }
+
+  bindUpdateAssignForm(handler) {
+    newUpdateAssignValidation(handler);
   }
 
   // Vincula a cada botón de eliminar los platos el manejador, pasándole el plato a través del dataset
@@ -1220,8 +1386,6 @@ class RestaurantsManagerView {
       for (const element of elements) {
         if (element !== ol.firstElementChild) element.remove();
       }
-
-      this.centralzone.children[0].remove();
 
       this[EXECUTE_HANDLER](
         handler,

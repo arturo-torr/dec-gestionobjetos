@@ -22,6 +22,7 @@ const historyActions = {
   newCategory: () => RestaurantManagerApp.handleNewCategoryForm(),
   removeCategory: () => RestaurantManagerApp.handleRemoveCategoryForm(),
   newRestaurant: () => RestaurantManagerApp.handleNewRestaurantForm(),
+  updAssign: () => RestaurantManagerApp.handleUpdAssignForm(),
 };
 
 // Se define 'popstate' para restaurar el estado de la página en función del tipo de acción apilada

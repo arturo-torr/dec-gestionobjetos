@@ -274,7 +274,8 @@ class RestaurantsManagerController {
       this.handleRemoveDishForm,
       this.handleNewCategoryForm,
       this.handleRemoveCategoryForm,
-      this.handleNewRestaurantForm
+      this.handleNewRestaurantForm,
+      this.handleUpdAssignForm
     );
   };
 
@@ -302,6 +303,11 @@ class RestaurantsManagerController {
   handleNewRestaurantForm = () => {
     this[VIEW].showNewRestaurantForm();
     this[VIEW].bindNewRestaurantForm(this.handleCreateRestaurant);
+  };
+
+  handleUpdAssignForm = () => {
+    this[VIEW].showUpdateAssignForm(this[MODEL].dishes, this[MODEL].menus);
+    this[VIEW].bindUpdateAssignForm(this.handleUpdateMenus);
   };
 
   // Manejador que recibe los datos del formulario de creación de platos
@@ -428,6 +434,37 @@ class RestaurantsManagerController {
     }
     this[VIEW].showNewRestaurantModal(done, rest, error);
   };
+
+  // Manejador que recibe el nombre del menú, los platos y la opción (Asignar o desasignar) plara realizar
+  // una modificación sobre los platos que están asignados a un menú
+  handleUpdateMenus = (menuName, dishes, option) => {
+    let auxDish;
+    let done;
+    let error;
+
+    const menu = this[MODEL].createMenu(menuName, RestaurantsManager.Menu);
+
+    try {
+      if (option === "ncAssign") {
+        for (const dish of dishes) {
+          auxDish = this[MODEL].createDish(dish, RestaurantsManager.Dish);
+          this[MODEL].assignDishToMenu(menu, auxDish);
+        }
+      } else {
+        for (const dish of dishes) {
+          auxDish = this[MODEL].createDish(dish, RestaurantsManager.Dish);
+          this[MODEL].desassignDishToMenu(menu, auxDish);
+        }
+      }
+      done = true;
+    } catch (exception) {
+      done = false;
+      error = exception;
+    }
+
+    this[VIEW].showNewUpdateAssignModal(done, menu, dishes, option, error);
+  };
+
   /** --- FIN PRACTICA 7 --- */
 
   // Funciones que se ejecutan al clickear inicio
