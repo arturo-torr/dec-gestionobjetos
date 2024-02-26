@@ -264,6 +264,7 @@ function newUpdateAssignValidation(handler) {
   });
 }
 
+// Validación de formulario para modificación de alérgeno a platos
 function newUpdateAllergenValidation(handler) {
   const form = document.forms.fUpdAllergen;
 
@@ -318,10 +319,61 @@ function newUpdateAllergenValidation(handler) {
   });
 }
 
+// Validación del formulario para cambiar las posiciones de un determinado menú
+function newChangePositionsValidation(handler) {
+  const form = document.forms.fChangePositions;
+  form.setAttribute("novalidate", true);
+  form.addEventListener("submit", function (event) {
+    let isValid = true;
+    let firstInvalidElement = null;
+
+    if (this.cPfirstDish.value === this.cPsecondDish.value) {
+      isValid = false;
+      showFeedBack(this.cPsecondDish, false);
+      firstInvalidElement = this.cPsecondDish;
+    } else {
+      showFeedBack(this.cPsecondDish, true);
+      isValid = true;
+    }
+
+    if (!isValid) {
+      firstInvalidElement.focus();
+    } else {
+      console.log(this.cPfirstDish.value);
+      handler(
+        this.cPmenus.value,
+        this.cPfirstDish.value,
+        this.cPsecondDish.value
+      );
+    }
+    event.preventDefault();
+    event.stopPropagation();
+  });
+
+  form.addEventListener("reset", function (event) {
+    for (const div of this.querySelectorAll(
+      "div.valid-feedback,div.invalid-feedback"
+    )) {
+      div.classList.remove("d-block");
+      div.classList.add("d-none");
+    }
+    for (const input of this.querySelectorAll("input")) {
+      input.classList.remove("is-valid");
+      input.classList.remove("is-invalid");
+    }
+    for (const input of this.querySelectorAll("select")) {
+      input.classList.remove("is-valid");
+      input.classList.remove("is-invalid");
+    }
+    this.cPmenus.focus();
+  });
+}
+
 export {
   newDishValidation,
   newCategoryValidation,
   newRestaurantValidation,
   newUpdateAssignValidation,
   newUpdateAllergenValidation,
+  newChangePositionsValidation,
 };

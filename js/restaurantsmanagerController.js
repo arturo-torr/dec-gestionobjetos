@@ -267,7 +267,6 @@ class RestaurantsManagerController {
     this.onAddAllergen();
     this.onAddMenu();
     this.onAddRestaurant();
-    this.onAddClose();
     this[VIEW].showAdminMenu();
     this[VIEW].bindAdminMenu(
       this.handleNewDishForm,
@@ -276,47 +275,69 @@ class RestaurantsManagerController {
       this.handleRemoveCategoryForm,
       this.handleNewRestaurantForm,
       this.handleUpdAssignForm,
-      this.handleUpdAllergenForm
+      this.handleUpdAllergenForm,
+      this.handleChangePositionsForm
     );
+    this.onAddClose();
   };
 
-  /** --- PRACTICA 7 --- */
+  /** --- PRACTICA 7 -- MANEJADORES --- */
+
+  // Formulario de creación de plato
   handleNewDishForm = () => {
     this[VIEW].showNewDishForm(this[MODEL].categories, this[MODEL].allergens);
     this[VIEW].bindNewDishForm(this.handleCreateDish);
   };
 
+  // Formulario de eliminación de plato
   handleRemoveDishForm = () => {
     this[VIEW].showRemoveDishForm(this[MODEL].dishes);
     this[VIEW].bindRemoveDishForm(this.handleRemoveDish);
   };
 
+  // Formulario de nueva categoría
   handleNewCategoryForm = () => {
     this[VIEW].showNewCategoryForm();
     this[VIEW].bindNewCategoryForm(this.handleCreateCategory);
   };
 
+  // Formulario de eliminar categoría
   handleRemoveCategoryForm = () => {
     this[VIEW].showRemoveCategoryForm(this[MODEL].categories);
     this[VIEW].bindRemoveCategoryForm(this.handleRemoveCategory);
   };
 
+  // Formulario de nuvo restaurante
   handleNewRestaurantForm = () => {
     this[VIEW].showNewRestaurantForm();
     this[VIEW].bindNewRestaurantForm(this.handleCreateRestaurant);
   };
 
+  // Formulario de actualizar asignaciones a menu
   handleUpdAssignForm = () => {
     this[VIEW].showUpdateAssignForm(this[MODEL].dishes, this[MODEL].menus);
     this[VIEW].bindUpdateAssignForm(this.handleUpdateMenus);
   };
 
+  // Formulario de actualizar alérgenos
   handleUpdAllergenForm = () => {
     this[VIEW].showUpdateAllergenForm(
       this[MODEL].dishes,
       this[MODEL].allergens
     );
     this[VIEW].bindUpdateAllergenForm(this.handleUpdateAllergens);
+  };
+
+  // Formularios de cambiar las posiciones (uno para seleccionar menu, otro se lanza en evento change)
+  handleChangePositionsForm = () => {
+    this[VIEW].showChangePositionsForm(this[MODEL].menus);
+    this[VIEW].bindChangePositionsSelects(this.handleChangePositionsMenu);
+  };
+
+  handleChangePositionsMenu = (menu) => {
+    const men = this[MODEL].createMenu(menu, RestaurantsManager.Menu);
+    this[VIEW].showChangePositionsList(this[MODEL].getDishesInMenu(men));
+    this[VIEW].bindChangePositionsForm(this.handleChangePositions);
   };
 
   // Manejador que recibe los datos del formulario de creación de platos
@@ -513,6 +534,23 @@ class RestaurantsManagerController {
       option,
       error
     );
+  };
+
+  handleChangePositions = (menu, firstDish, secondDish) => {
+    const men = this[MODEL].createMenu(menu, RestaurantsManager.Menu);
+    const fDish = this[MODEL].createDish(firstDish, RestaurantsManager.Dish);
+    const sDish = this[MODEL].createDish(secondDish, RestaurantsManager.Dish);
+
+    let done;
+    let error;
+    try {
+      this[MODEL].changeDishesPositionsInMenu(men, fDish, sDish);
+      done = true;
+    } catch (exception) {
+      done = false;
+      error = exception;
+    }
+    this[VIEW].showChangePositionsModal(done, men, fDish, sDish, error);
   };
 
   /** --- FIN PRACTICA 7 --- */
