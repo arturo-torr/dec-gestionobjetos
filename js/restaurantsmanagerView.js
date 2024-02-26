@@ -4,6 +4,7 @@ import {
   newRestaurantValidation,
   newUpdateAssignValidation,
   newUpdateAllergenValidation,
+  newChangePositionsValidation,
 } from "./validation.js";
 // Symbol dónde se introducirá la vista de RestaurantManager
 const EXECUTE_HANDLER = Symbol("executeHandler");
@@ -566,6 +567,10 @@ class RestaurantsManagerView {
     subContainer.insertAdjacentHTML(
       "beforeend",
       '<a id="updAssign" class="dropdown-item text--green fw-bold" href="#upd-assign">Modificar asignación</a></li>'
+    );
+    subContainer.insertAdjacentHTML(
+      "beforeend",
+      '<a id="changePositions" class="dropdown-item text--green fw-bold" href="#change-positions">Cambiar posiciones</a>'
     );
     subContainer.insertAdjacentHTML(
       "beforeend",
@@ -1137,6 +1142,127 @@ class RestaurantsManagerView {
     form.insertAdjacentElement("beforebegin", div);
   }
 
+  // Muestra el formulario para seleciconar aquel menú del cual queremos cambiar la posición de sus platos
+  showChangePositionsForm(menus) {
+    this.initzone.replaceChildren();
+    this.centralzone.replaceChildren();
+    // Realizamos la creación de las migas de pan, eliminando el atributo de aria-current al último elemento y también la fuente bold
+    let ol = this.breadcrumb.closest("ol");
+    ol.lastElementChild.removeAttribute("aria-current");
+    ol.lastElementChild.classList.remove("fw-bolder");
+    let li = document.createElement("li");
+    li.classList.add("breadcrumb-item", "text--green", "fw-bolder");
+    li.textContent = "Cambiar posiciones";
+    ol.appendChild(li);
+
+    const container = document.createElement("div");
+    container.classList.add("container", "my-3");
+    container.id = "change-positions";
+
+    const form = document.createElement("form");
+    form.name = "fChangePositions";
+    form.setAttribute("role", "form");
+    form.setAttribute("novalidate", "");
+    form.classList.add("row", "g-3", "mx-auto");
+
+    form.insertAdjacentHTML(
+      "beforeend",
+      `<div class="col-md-12 mb-3">
+				<label class="form-label" for="cPmenus">Menús:</label>
+				<div class="input-group">
+					<select class="form-select" name="cPmenus" id="cPmenus">
+						<option disabled selected>Selecciona un menú</option>
+					</select>
+				</div>
+			</div>
+      <div class="col-md-6 mb-3">
+				<label class="form-label" for="cPfirstDish">Primer plato:</label>
+				<div class="input-group">
+					<select class="form-select" name="cPfirstDish" id="cPfirstDish">
+						<option disabled selected>Selecciona un primer plato</option>
+					</select>
+				</div>
+			</div>
+      <div class="col-md-6 mb-3">
+				<label class="form-label" for="cPsecondDish">Segundo plato:</label>
+				<div class="input-group">
+					<select class="form-select" name="cPsecondDish" id="cPsecondDish">
+						<option disabled selected>Selecciona un segundo plato</option>
+					</select>
+          <div class="invalid-feedback">No puede seleccionar platos iguales.</div>
+          <div class="valid-feedback">Correcto!</div>
+				</div>
+			</div>
+      <div id="cPbuttons" class="col-md-12 mb-3"></div>`
+    );
+    const selectMenus = form.querySelector("#cPmenus");
+    for (const menu of menus) {
+      selectMenus.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${menu.menu.name}">${menu.menu.name}</option>`
+      );
+    }
+
+    container.append(form);
+
+    // Inserta un título previo al formulario
+    let div = document.createElement("div");
+    div.insertAdjacentHTML(
+      "beforeend",
+      `<h1 class="text--green fw-bold my-4 mx-2">Modificar las posiciones</h1>`
+    );
+    div.id = "new-restaurant";
+    form.insertAdjacentElement("beforebegin", div);
+    this.centralzone.append(container);
+  }
+
+  // Función que dentro del formulario de cambiar posiciones actualiza los selects en valor a los platosreferentes a ese menú
+  showChangePositionsList(dishes) {
+    const form = document.forms.fChangePositions;
+    let firstSelect = form.querySelector("#cPfirstDish");
+    firstSelect.replaceChildren();
+    let secondSelect = form.querySelector("#cPsecondDish");
+    secondSelect.replaceChildren();
+    let buttons = form.querySelector("#cPbuttons");
+    buttons.replaceChildren();
+
+    firstSelect.insertAdjacentHTML(
+      "beforeend",
+      "<option disabled selected>Selecciona un primer plato</option>"
+    );
+    secondSelect.insertAdjacentHTML(
+      "beforeend",
+      "<option disabled selected>Selecciona un segundo plato</option>"
+    );
+
+    let exist = false;
+
+    for (const dish of dishes) {
+      exist = true;
+      firstSelect.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${dish.dish.name}">${dish.dish.name}</option>`
+      );
+      secondSelect.insertAdjacentHTML(
+        "beforeend",
+        `<option value="${dish.dish.name}">${dish.dish.name}</option>`
+      );
+    }
+    if (!exist) {
+      form.insertAdjacentHTML(
+        "beforeend",
+        '<p class="text-danger"><i class="bi bi-exclamation-triangle"></i> No existen platos para este menú actualmente.</p>'
+      );
+    } else {
+      buttons.insertAdjacentHTML(
+        "beforeend",
+        `<div class="col-md-12">
+         <button class="newfood__content__button" type="submit">Intercambiar</button>
+      <button class="newfood__content__button" type="reset">Cancelar</button>
+      </div>`
+      );
+    }
+  }
   /** ----------- INICIO MODALES -----------  */
 
   // Modal que se abre cuando se crea un plato, indicando si se ha creado o no correctamente.
@@ -1397,12 +1523,45 @@ class RestaurantsManagerView {
     });
   }
 
+  // Modal que se muestra cuando se cambian las posiciones de los platos en un menu
+  showChangePositionsModal(done, menu, firstDish, secondDish, error) {
+    const messageModalContainer = document.getElementById("messageModal");
+    const messageModal = new bootstrap.Modal("#messageModal");
+
+    const title = document.getElementById("messageModalTitle");
+    title.innerHTML = "Modificación de posiciones";
+    const body = messageModalContainer.querySelector(".modal-body");
+    body.replaceChildren();
+    if (done) {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="p-3">El menú <strong>${menu.name}</strong> ha cambiado la posición de ${firstDish.name} por ${secondDish.name}</div>`
+      );
+    } else {
+      body.insertAdjacentHTML(
+        "afterbegin",
+        `<div class="error text-danger p-3"><i class="fa-solid fa-triangle-exclamation"></i>Ha ocurrido un error inesperado en el cambio de posiciones.</div>`
+      );
+    }
+    messageModal.show();
+    const listener = (event) => {
+      if (done) {
+        document.fChangePositions.reset();
+      }
+      document.fChangePositions.cPmenus.focus();
+    };
+    messageModalContainer.addEventListener("hidden.bs.modal", listener, {
+      once: true,
+    });
+  }
+
   /** ----------- FIN MODALES -----------  */
 
   /** ------------------- MÉTODOS BIND ------------------- */
 
   /** --- PRACTICA 7 --- */
 
+  // Manejadores para todos los formularios que se encuentran en el menú de navegación
   bindAdminMenu(
     hNewDish,
     hRemoveDish,
@@ -1410,7 +1569,8 @@ class RestaurantsManagerView {
     hRemoveCategory,
     hNewRest,
     hUpdAssign,
-    hUpdAllergen
+    hUpdAllergen,
+    hChangePositions
   ) {
     const newDishLink = document.getElementById("newDish");
     newDishLink.addEventListener("click", (event) => {
@@ -1419,7 +1579,7 @@ class RestaurantsManagerView {
         [],
         "#new-dish",
         { action: "newDish" },
-        "#",
+        "#new-dish",
         event
       );
     });
@@ -1492,6 +1652,32 @@ class RestaurantsManagerView {
         event
       );
     });
+    const changePositionsLink = document.getElementById("changePositions");
+    changePositionsLink.addEventListener("click", (event) => {
+      this[EXECUTE_HANDLER](
+        hChangePositions,
+        [],
+        "#change-positions",
+        { action: "changePositions" },
+        "#",
+        event
+      );
+    });
+  }
+
+  // Manejador que se da cuando detecta el evento change en el formulario de cambiar las posiciones de los platos en un menú
+  bindChangePositionsSelects(hMenus) {
+    const selectMenus = document.getElementById("cPmenus");
+    selectMenus.addEventListener("change", (event) => {
+      this[EXECUTE_HANDLER](
+        hMenus,
+        [event.currentTarget.value],
+        "#change-positions",
+        { action: "changePositionsMenu", type: event.currentTarget.value },
+        "#change-positions",
+        event
+      );
+    });
   }
 
   // Manejadores que requieren de la validación del formulario
@@ -1513,6 +1699,10 @@ class RestaurantsManagerView {
 
   bindUpdateAllergenForm(handler) {
     newUpdateAllergenValidation(handler);
+  }
+
+  bindChangePositionsForm(handler) {
+    newChangePositionsValidation(handler);
   }
 
   // Vincula a cada botón de eliminar los platos el manejador, pasándole el plato a través del dataset
@@ -1569,8 +1759,6 @@ class RestaurantsManagerView {
       for (const element of elements) {
         if (element !== ol.firstElementChild) element.remove();
       }
-
-      this.centralzone.children[0].remove();
 
       this[EXECUTE_HANDLER](
         handler,
